@@ -160,11 +160,11 @@ export default function tldrSpec(pi: ExtensionAPI) {
 
 	// ── System prompt injection ────────────────────────────────────────
 
-	pi.on("before_agent_start", async (event) => {
+	pi.on("before_agent_start", async (event, ctx) => {
 		if (!session) return;
 
 		const { phase, initiative, specName } = session;
-		const cwd = event.cwd;
+		const cwd = ctx.cwd;
 
 		const discovery = readArtifact(discoveryPath(cwd, initiative));
 		const specs = readAllSpecs(cwd, initiative);
