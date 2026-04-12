@@ -4,9 +4,9 @@
  * A lightweight, spec-driven planning framework for pi.
  * Three phases, three commands, no ceremony.
  *
- * /discovery <initiative>          — Understand what the user wants through focused Q&A
- * /specify <initiative> [spec-name] — Write specifications from discovery context
- * /plan <initiative>               — Break specifications into actionable tasks
+ * /tldr-discovery <initiative>          — Understand what the user wants through focused Q&A
+ * /tldr-specify <initiative> [spec-name] — Write specifications from discovery context
+ * /tldr-plan <initiative>               — Break specifications into actionable tasks
  *
  * Artifacts are stored in ./initiatives/<initiative-name>/
  *
@@ -76,7 +76,7 @@ export default function tldrSpec(pi: ExtensionAPI) {
 			.replace(/^-|-$/g, "");
 
 		if (!slug) {
-			ctx.ui.notify("Initiative name is required. Usage: /discovery <name>", "error");
+			ctx.ui.notify("Initiative name is required. Usage: /tldr-discovery <name>", "error");
 			return;
 		}
 
@@ -118,40 +118,40 @@ export default function tldrSpec(pi: ExtensionAPI) {
 
 	// ── Commands ────────────────────────────────────────────────────────
 
-	pi.registerCommand("discovery", {
-		description: "Start or continue discovery for an initiative. Usage: /discovery <initiative-name>",
+	pi.registerCommand("tldr-discovery", {
+		description: "Start or continue discovery for an initiative. Usage: /tldr-discovery <initiative-name>",
 		handler: async (args, ctx) => {
 			const initiative = args?.trim();
 			if (!initiative) {
-				ctx.ui.notify("Usage: /discovery <initiative-name>", "error");
+				ctx.ui.notify("Usage: /tldr-discovery <initiative-name>", "error");
 				return;
 			}
 			startPhase("discovery", initiative, ctx);
 		},
 	});
 
-	pi.registerCommand("specify", {
+	pi.registerCommand("tldr-specify", {
 		description:
-			"Write or refine a specification for an initiative. Usage: /specify <initiative-name> [spec-name]",
+			"Write or refine a specification for an initiative. Usage: /tldr-specify <initiative-name> [spec-name]",
 		handler: async (args, ctx) => {
 			const parts = args?.trim().split(/\s+/) ?? [];
 			const initiative = parts[0];
 			const specName = parts[1]; // optional
 
 			if (!initiative) {
-				ctx.ui.notify("Usage: /specify <initiative-name> [spec-name]", "error");
+				ctx.ui.notify("Usage: /tldr-specify <initiative-name> [spec-name]", "error");
 				return;
 			}
 			startPhase("specify", initiative, ctx, specName);
 		},
 	});
 
-	pi.registerCommand("plan", {
-		description: "Create a task plan from an initiative's artifacts. Usage: /plan <initiative-name>",
+	pi.registerCommand("tldr-plan", {
+		description: "Create a task plan from an initiative's artifacts. Usage: /tldr-plan <initiative-name>",
 		handler: async (args, ctx) => {
 			const initiative = args?.trim();
 			if (!initiative) {
-				ctx.ui.notify("Usage: /plan <initiative-name>", "error");
+				ctx.ui.notify("Usage: /tldr-plan <initiative-name>", "error");
 				return;
 			}
 			startPhase("plan", initiative, ctx);
