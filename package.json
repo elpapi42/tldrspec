@@ -1,0 +1,28 @@
+{
+  "name": "tldr-spec",
+  "version": "0.1.0",
+  "description": "A lightweight, spec-driven planning framework. Three phases, three commands, no ceremony.",
+  "type": "module",
+  "keywords": ["pi-package"],
+  "files": [
+    "index.ts",
+    "phases.ts",
+    "state.ts"
+  ],
+  "pi": {
+    "extensions": ["./index.ts"]
+  },
+  "peerDependencies": {
+    "@mariozechner/pi-coding-agent": "*",
+    "@sinclair/typebox": "*"
+  },
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/elpapi42/tldrspec.git"
+  },
+  "homepage": "https://github.com/elpapi42/tldrspec#readme",
+  "bugs": {
+    "url": "https://github.com/elpapi42/tldrspec/issues"
+  }
+}
