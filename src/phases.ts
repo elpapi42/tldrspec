@@ -385,10 +385,12 @@ Present the user with a clear summary:
 - **Still open:** [any previously identified areas that weren't selected]
 
 Then use ask_question:
-- label: "Explore more gray areas", description: "Discuss new or remaining areas before finalizing"
+- label: "Keep going — surface more decision points", description: "I'll identify new areas from what we've discussed so far and let you pick which to explore"
 - label: "Ready to finalize the spec", description: "Proceed to coverage audit and writing"
 
-If the user picks "Explore more", present the new/remaining gray areas via ask_multi_select (with annotations, same as step 3) and loop back to step 4. This loop can repeat as many times as needed.
+CRITICAL: If the user picks "Keep going", you MUST run the FULL loop — go back to step 3, proactively identify new gray areas based on everything discussed so far, present them with annotations via ask_multi_select, let the user pick, then discuss each one through step 4. Do NOT just ask one ad-hoc question. Do NOT ask the user what they want to discuss — YOU identify the new areas and present them. The user is telling you to dig deeper, not bringing their own topics.
+
+This loop can repeat as many times as needed. Each iteration should surface genuinely new decision points informed by everything resolved so far.
 
 Do NOT skip this checkpoint. Do NOT proceed to writing without asking the user.
 
