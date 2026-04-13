@@ -17,12 +17,15 @@ A single-question tool with a custom TUI. Presents numbered options the user nav
 > 2. Reuse ListView (fits if data-heavy)
   3. New timeline component
   4. Something else (I'll explain)
+  5. Let's discuss this
 
  Up/Down navigate - Enter to select - Esc to cancel
 ───────────────────────────────────────────────
 ```
 
 When the user selects "Something else (I'll explain)", an inline text editor appears. They type their answer and press Enter to submit. Pressing Escape returns to the options list.
+
+When the user selects "Let's discuss this", the LLM switches to conversational mode -- asking follow-ups in plain text without tools until it has enough clarity to resume structured questions.
 
 ### Parameters
 
@@ -35,11 +38,12 @@ When the user selects "Something else (I'll explain)", an inline text editor app
 
 - **User selects an option**: `"User selected: 2. Reuse ListView"`
 - **User types free text**: `"User wrote: I want a kanban board layout"`
+- **User picks "Let's discuss this"**: `"User wants to discuss this topic in conversation..."` (instructs LLM to switch to conversational mode)
 - **User cancels (Escape)**: `"User cancelled the selection."`
 
 ### Usage in prompts
 
-The phase prompts instruct the LLM to use `ask_question` for every user interaction. The tool automatically appends "Something else (I'll explain)" as the last option -- the LLM does not need to include a free-text option.
+The phase prompts instruct the LLM to use `ask_question` for every user interaction. The tool automatically appends two special options -- "Something else (I'll explain)" and "Let's discuss this" -- the LLM does not need to include these.
 
 ## ask_multi_select
 
@@ -88,7 +92,7 @@ Both phases enforce a strict rule: one question per turn. The LLM never asks mul
 
 ### Always a way out
 
-`ask_question` always includes "Something else (I'll explain)" as the last option. The user can always break out of structured options into free-text. After the LLM processes their free-text response, it resumes with structured options for the next question.
+`ask_question` always appends two escape hatches: "Something else (I'll explain)" for free-text input, and "Let's discuss this" for switching to open conversational mode. The user can always break out of structured options. After the LLM processes their response, it resumes with structured options for the next question.
 
 ### Code context in every option
 

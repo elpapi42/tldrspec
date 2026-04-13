@@ -7,7 +7,7 @@ tldrspec/
 ├── src/
 │   ├── index.ts    — Extension entry point: commands, event hooks, tool registration
 │   ├── phases.ts   — System prompt builders for each phase
-│   ├── state.ts    — Initiative paths and artifact read/write helpers
+│   ├── state.ts    — Initiative paths and artifact read helpers
 │   └── tools.ts    — Custom TUI tools (ask_question, ask_multi_select)
 ├── docs/           — Documentation
 ├── package.json    — Pi extension manifest

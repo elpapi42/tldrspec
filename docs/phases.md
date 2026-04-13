@@ -66,15 +66,13 @@ Specs can cover any domain -- not just technical engineering:
 
 ### How it works
 
-1. **Orient** -- If no spec name was provided, the LLM suggests spec types based on what the discovery revealed. It reads the discovery document and all existing specs.
+1. **Orient + Purpose** -- If no spec name was provided, the LLM suggests spec types based on what the discovery revealed. It reads the discovery document and all existing specs. Then it asks what this spec should cover, inferring likely purposes from the spec name and discovery context.
 
-2. **Understand purpose** -- The LLM asks what this spec should cover, inferring likely purposes from the spec name and discovery document.
+2. **Quick scan + assumptions** -- A lightweight codebase scan builds baseline understanding. The LLM forms assumptions with confidence levels (Confident / Likely / Unclear) and presents them one at a time for correction. This is just enough to identify what exists -- deep research happens later, per gray area.
 
-3. **Codebase analysis** -- Assumption-based flow focused on the spec's domain. The LLM cites existing code when presenting options. (Depth adapts to spec type -- deep for technical specs, lighter for product or business specs.)
+3. **Gray area identification** -- 3-4 concrete decision points about how something should work (not whether it should exist). The user selects which to discuss via multi-select.
 
-4. **Gray area identification** -- 3-4 concrete decision points about how something should work (not whether it should exist).
-
-5. **Research-backed options** -- For technical decisions, the LLM presents comparison tables:
+4. **Focused discussion** -- Each selected gray area gets its own deep research pass -- the LLM digs into the specific files, patterns, and dependencies relevant to that decision. For technical decisions, it presents comparison tables:
 
    | Option | Pros | Cons | Complexity | Recommendation |
    |--------|------|------|------------|----------------|
@@ -83,14 +81,15 @@ Specs can cover any domain -- not just technical engineering:
 
    - Complexity = impact surface + risk (never time estimates)
    - Recommendations are always conditional ("Recommended if mobile-first"), never single-winner rankings
+   - Vague decisions are challenged immediately during discussion
 
-6. **Vagueness challenge** -- Every decision is challenged if vague. "Clean UI" becomes "minimal controls with lots of whitespace" or "monochrome palette with subtle borders."
+5. **Checkpoint** -- After discussing all selected areas, the LLM presents a summary: what's been resolved, what new decision points surfaced during discussion, and what's still open. The user can loop back to explore more gray areas or proceed to finalize. This loop can repeat as many times as needed.
 
-7. **Coverage audit** -- Before writing, every goal and decision from the discovery document is checked. If anything is missing and not covered by another spec, the user is asked whether to include it or create a separate spec.
+6. **Coverage audit** -- Before writing, every goal and decision from the discovery document is checked. If anything is missing and not covered by another spec, the user is asked whether to include it or create a separate spec.
 
-8. **Specificity test** -- Every decision is tested: "Could a different AI implement this without asking clarifying questions?" Failures are resolved before writing.
+7. **Specificity test** -- Every decision is tested: "Could a different AI implement this without asking clarifying questions?" Failures are resolved before writing.
 
-9. **Artifact writing** -- The spec is written with numbered decision IDs (D-01, D-02, etc.).
+8. **Artifact writing** -- The spec is written with numbered decision IDs (D-01, D-02, etc.).
 
 ### Spec structure
 

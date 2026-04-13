@@ -285,14 +285,11 @@ IMPORTANT: Also switch to conversational mode when the user picks an option that
 
 ## Process
 
-### 1. Orient
+### 1. Orient + Purpose
 
 - If no spec name was provided, read the discovery document and suggest 2-3 spec types that would be most valuable for this initiative using the ask_question tool. Base suggestions on what the discovery revealed — e.g., if the discovery identified complex user flows, suggest a product spec; if it surfaced data handling constraints, suggest a data spec. Don't just list generic types.
 - Read the discovery document and all existing specs as your source of truth.
-
-### 2. Understand the spec's purpose
-
-Before doing any analysis, ask the user what this spec should cover using ask_question. Infer 2-3 likely purposes from the spec name and the discovery document, and present them as options. Each option should be specific — not just a category, but a concrete scope statement.
+- Ask the user what this spec should cover using ask_question. Infer 2-3 likely purposes from the spec name and the discovery document, and present them as options. Each option should be specific — not just a category, but a concrete scope statement.
 
 Example for a spec named "api-design":
 - "REST endpoint contracts — routes, payloads, validation, error responses"
@@ -301,23 +298,25 @@ Example for a spec named "api-design":
 
 This purpose statement anchors everything downstream — your codebase analysis, gray areas, and decisions should all serve this purpose. If the user's stated purpose is already well-covered by an existing spec, tell them before proceeding.
 
-### 3. Codebase analysis and assumptions
+### 2. Quick scan + assumptions
 
-Explore the codebase (read files, grep, glob) to understand the current state of relevant code, focused on the stated purpose.
+Do a lightweight scan of the codebase and discovery context to build a baseline understanding — just enough to form assumptions, not a deep dive. You're looking for existing patterns, relevant files, and the current state of things related to this spec's purpose.
 
-Before asking questions, analyze the codebase for patterns relevant to this spec. Form assumptions with confidence levels (Confident / Likely / Unclear) — just like in discovery. Present them to the user and ask for corrections. This grounds the spec in what actually exists and reduces unnecessary questions.
+Form assumptions with confidence levels (Confident / Likely / Unclear) — just like in discovery. Present them to the user ONE AT A TIME using ask_question with options like "Correct", "Not quite, let me explain". This grounds the spec in what actually exists and reduces unnecessary questions.
 
-When presenting any option throughout the spec process, ALWAYS cite existing code that's relevant. Frame options in terms of "reuse X" vs. "build new" with file paths.
+Throughout the entire spec process, ALWAYS cite existing code when presenting options. Frame options in terms of "reuse X" vs. "build new" with file paths.
 
-### 4. Identify gray areas
+### 3. Identify gray areas
 
-Identify 3-4 concrete decision points specific to this spec. These are solution-space decisions — how something should work, not whether it should exist.
+From what you now know (discovery, existing specs, codebase scan, corrected assumptions), identify 3-4 concrete decision points specific to this spec. These are solution-space decisions — how something should work, not whether it should exist.
 
-Present them to the user and let them choose which to discuss using the ask_multi_select tool.
+Present them to the user and let them choose which to discuss using the ask_multi_select tool. Keep a running list of all gray areas — both resolved and open — so you can present the full picture at each checkpoint.
 
-### 5. Discuss with research-backed options
+### 4. Discuss selected gray areas
 
-For each gray area, especially technical decisions, present a comparison table before asking:
+For each selected gray area, do **focused research** — dig into the specific codebase files, patterns, and dependencies relevant to that decision. This is the deep dive, not the quick scan from step 2.
+
+For technical decisions, present a comparison table before asking:
 
 | Option | Pros | Cons | Complexity | Recommendation |
 |--------|------|------|------------|----------------|
@@ -336,15 +335,26 @@ For non-technical decisions, use the same 2-4 concrete options approach from dis
 Every option in ask_question MUST include a description that helps the user decide. The description should briefly state why you'd pick it and why you might not, separated by a bullet. Example:
 - label: "Reuse Card component", description: "Consistent with existing pages, less code • Limited to shadow/rounded variants"
 
-### 6. Challenge vagueness
-
-If a decision is vague, challenge it before recording:
+Challenge vague decisions immediately as they come up — don't wait for a separate step:
 - "You said 'clean UI' — what does clean mean? Minimal controls? Lots of whitespace? Monochrome palette?"
 - "You said 'fast' — what's the threshold? Under 200ms? Under 1s? Just 'noticeably faster than now'?"
 
-Every decision in the spec must be specific enough that two different implementers would produce similar results.
+Every decision must be specific enough that two different implementers would produce similar results.
 
-### 7. Coverage audit (mandatory before writing)
+### 5. Checkpoint
+
+After discussing all selected gray areas, pause and take stock. Present the user with a summary:
+- **Resolved:** gray areas that now have concrete decisions
+- **New:** any new decision points that surfaced during discussion (this is common — discussing one area often reveals others)
+- **Still open:** any previously identified areas that weren't selected
+
+Then use ask_question to let the user choose:
+- "Explore new/remaining gray areas" — loop back to step 3 with the updated list
+- "Proceed to finalize the spec" — continue to step 6
+
+This checkpoint can repeat as many times as needed. Each loop refines the spec's decisions further.
+
+### 6. Coverage audit (mandatory before writing)
 
 Before writing the spec, re-read the discovery document and check every goal, constraint, and decision against what this spec covers:
 - For each item in discovery: is it addressed by this spec, covered by another existing spec, or explicitly out of scope for this spec?
@@ -352,14 +362,14 @@ Before writing the spec, re-read the discovery document and check every goal, co
 
 Do NOT silently drop discovery items. Every goal and decision must be accounted for.
 
-### 8. Specificity test (mandatory before writing)
+### 7. Specificity test (mandatory before writing)
 
 Before writing the final spec, run every decision through this test: "Could a different AI implement this without asking clarifying questions?"
 
 - If a decision fails the test, resolve it — either ask the user to clarify or make a concrete call if it's in the "your discretion" bucket.
 - This also works in reverse — if a decision is specific enough, stop there. Don't specify variable names or internal function structure.
 
-### 9. Capture decisions
+### 8. Write the spec
 
 When all areas are discussed and both the coverage audit and specificity test pass, compile into the spec. Structure decisions as:
 
