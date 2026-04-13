@@ -6,7 +6,7 @@ tldr-spec has three sequential phases. Each phase reads the artifacts from prior
 
 **Command:** `/tldr-discovery <initiative-name>`
 **Reads:** Codebase
-**Produces:** `initiatives/<name>/discovery.md`
+**Produces:** `tldrspec/<name>/discovery.md`
 
 Discovery is the problem space. The goal is to deeply understand what the user wants to build and why, eliminating ambiguity before anything gets specified.
 
@@ -49,7 +49,7 @@ The **Decisions** section captures concrete choices made during discovery. The *
 
 **Command:** `/tldr-specify <initiative-name> [spec-name]`
 **Reads:** `discovery.md` + existing specs + codebase
-**Produces:** `initiatives/<name>/specs/<spec-name>.md`
+**Produces:** `tldrspec/<name>/specs/<spec-name>.md`
 
 Specify is the solution space. Discovery defined what we're building and why -- specify defines how it should work through concrete decisions.
 
@@ -101,7 +101,7 @@ Specify is the solution space. Discovery defined what we're building and why -- 
 
 **Command:** `/tldr-plan <initiative-name>`
 **Reads:** `discovery.md` + all specs + codebase
-**Produces:** `initiatives/<name>/plan.md`
+**Produces:** `tldrspec/<name>/plan.md`
 
 Plan breaks specifications into executable tasks. Each task has enough context for independent execution.
 

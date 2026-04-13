@@ -20,9 +20,9 @@ tldr-spec registers three commands in pi:
 
 | Command | Purpose | Output |
 |---------|---------|--------|
-| `/tldr-discovery <name>` | Understand the problem space | `initiatives/<name>/discovery.md` |
-| `/tldr-specify <name> [spec]` | Write actionable specifications | `initiatives/<name>/specs/<spec>.md` |
-| `/tldr-plan <name>` | Break specs into executable tasks | `initiatives/<name>/plan.md` |
+| `/tldr-discovery <name>` | Understand the problem space | `tldrspec/<name>/discovery.md` |
+| `/tldr-specify <name> [spec]` | Write actionable specifications | `tldrspec/<name>/specs/<spec>.md` |
+| `/tldr-plan <name>` | Break specs into executable tasks | `tldrspec/<name>/plan.md` |
 
 ## Quick Walkthrough
 
@@ -39,7 +39,7 @@ The LLM will:
 4. Identify gray areas -- decision points where your preference matters
 5. Let you select which gray areas to discuss
 6. Walk through each area with concrete options
-7. Write `initiatives/auth-system/discovery.md`
+7. Write `tldrspec/auth-system/discovery.md`
 
 ### 2. Write specifications
 
@@ -72,7 +72,7 @@ All artifacts live alongside your code:
 ```
 your-project/
 ├── src/
-├── initiatives/
+├── tldrspec/
 │   └── auth-system/
 │       ├── discovery.md
 │       ├── specs/

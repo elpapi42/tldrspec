@@ -56,14 +56,14 @@ pi install git:github.com/elpapi42/tldrspec
 /tldr-plan my-feature
 ```
 
-Artifacts land in `initiatives/<name>/` alongside your code. They're markdown, version-controllable, and human-readable.
+Artifacts land in `tldrspec/<name>/` alongside your code. They're markdown, version-controllable, and human-readable.
 
 Re-running any command refines the existing artifact instead of starting over.
 
 ## Artifact Structure
 
 ```
-initiatives/
+tldrspec/
   auth-system/
     discovery.md
     specs/

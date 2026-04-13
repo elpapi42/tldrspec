@@ -12,7 +12,7 @@ export interface SessionState {
 
 /** Get the root path for an initiative */
 export function initiativePath(cwd: string, initiative: string): string {
-	return join(cwd, "initiatives", initiative);
+	return join(cwd, "tldrspec", initiative);
 }
 
 /** Get the path to the discovery artifact */

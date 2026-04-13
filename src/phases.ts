@@ -143,7 +143,7 @@ When the user mentions a technology area, use these to surface hidden assumption
 
 ## Output
 
-The discovery document you write to initiatives/${opts.initiative}/discovery.md MUST follow this structure:
+The discovery document you write to tldrspec/${opts.initiative}/discovery.md MUST follow this structure:
 
 # Discovery: <initiative name>
 
@@ -325,7 +325,7 @@ When all areas are discussed and both the coverage audit and specificity test pa
 
 ## Output
 
-Save the specification to initiatives/${opts.initiative}/specs/<spec-name>.md using the write tool. The spec should contain:
+Save the specification to tldrspec/${opts.initiative}/specs/<spec-name>.md using the write tool. The spec should contain:
 
 1. A brief context section linking back to discovery decisions
 2. Concrete decisions grouped by area, each with a decision ID (D-01, D-02, etc.)
@@ -380,7 +380,7 @@ Your job:
 CROSS-PHASE CONSISTENCY:
 - If something in the specifications doesn't add up, or is contradictory, or impossible given the codebase, STOP and tell the user. Explain the issue and suggest corrections to the relevant spec or discovery document.
 
-The plan you write to initiatives/${opts.initiative}/plan.md MUST follow this structure:
+The plan you write to tldrspec/${opts.initiative}/plan.md MUST follow this structure:
 
 # Plan: <initiative name>
 

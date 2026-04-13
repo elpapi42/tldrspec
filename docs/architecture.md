@@ -50,7 +50,7 @@ This ensures the LLM always has full artifact context without needing to read fi
 
 ### LLM writes files with pi's built-in write tool
 
-There is no custom `save_artifact` tool. The system prompt tells the LLM where to write (e.g., `initiatives/<name>/discovery.md`), and the LLM uses pi's standard `write` tool. This keeps the extension simple and lets the LLM handle formatting naturally.
+There is no custom `save_artifact` tool. The system prompt tells the LLM where to write (e.g., `tldrspec/<name>/discovery.md`), and the LLM uses pi's standard `write` tool. This keeps the extension simple and lets the LLM handle formatting naturally.
 
 ### LLM reads the codebase with pi's built-in tools
 

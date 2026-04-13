@@ -8,7 +8,7 @@
  * /tldr-specify <initiative> [spec-name] — Write specifications from discovery context
  * /tldr-plan <initiative>               — Break specifications into actionable tasks
  *
- * Artifacts are stored in ./initiatives/<initiative-name>/
+ * Artifacts are stored in ./tldrspec/<initiative-name>/
  *
  * The LLM drives the conversation in each phase, guided by phase-specific
  * system prompts. Custom tools (ask_question, ask_multi_select) handle all
@@ -66,20 +66,20 @@ export default function tldrSpec(pi: ExtensionAPI) {
 			case "discovery": {
 				const existing = readArtifact(discoveryPath(cwd, initiative));
 				return existing
-					? `I want to continue refining the discovery for the "${initiative}" initiative. The existing discovery document is at initiatives/${initiative}/discovery.md. Please read it and help me fill any gaps.`
+					? `I want to continue refining the discovery for the "${initiative}" initiative. The existing discovery document is at tldrspec/${initiative}/discovery.md. Please read it and help me fill any gaps.`
 					: `I want to start discovery for a new initiative called "${initiative}". Help me understand and define what we're building. Start asking questions.`;
 			}
 			case "specify": {
 				if (specName) {
 					const existing = readArtifact(specPath(cwd, initiative, specName));
 					return existing
-						? `I want to refine the "${specName}" specification for the "${initiative}" initiative. The existing spec is at initiatives/${initiative}/specs/${specName}.md. Please read it and help me improve it.`
-						: `I want to write a "${specName}" specification for the "${initiative}" initiative. Read the discovery document at initiatives/${initiative}/discovery.md and any existing specs, then help me write this spec.`;
+						? `I want to refine the "${specName}" specification for the "${initiative}" initiative. The existing spec is at tldrspec/${initiative}/specs/${specName}.md. Please read it and help me improve it.`
+						: `I want to write a "${specName}" specification for the "${initiative}" initiative. Read the discovery document at tldrspec/${initiative}/discovery.md and any existing specs, then help me write this spec.`;
 				}
-				return `I want to write a specification for the "${initiative}" initiative. Read the discovery document at initiatives/${initiative}/discovery.md and any existing specs, then ask me what aspect I want to specify.`;
+				return `I want to write a specification for the "${initiative}" initiative. Read the discovery document at tldrspec/${initiative}/discovery.md and any existing specs, then ask me what aspect I want to specify.`;
 			}
 			case "plan": {
-				return `I want to create a task plan for the "${initiative}" initiative. Read all artifacts in initiatives/${initiative}/ (discovery.md and all specs in specs/) and break them down into actionable tasks.`;
+				return `I want to create a task plan for the "${initiative}" initiative. Read all artifacts in tldrspec/${initiative}/ (discovery.md and all specs in specs/) and break them down into actionable tasks.`;
 			}
 		}
 	}
