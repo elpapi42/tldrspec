@@ -91,8 +91,18 @@ export function registerTools(pi: ExtensionAPI) {
 						tui.requestRender();
 					}
 
+					const isOnOther = () => allOptions[optionIndex]?.isOther === true;
+
 					function handleInput(data: string) {
 						if (editMode) {
+							// Up arrow while editing: clear editor, exit edit mode, navigate up
+							if (matchesKey(data, Key.up)) {
+								editMode = false;
+								editor.setText("");
+								optionIndex = Math.max(0, optionIndex - 1);
+								refresh();
+								return;
+							}
 							if (matchesKey(data, Key.escape)) {
 								editMode = false;
 								editor.setText("");
@@ -128,6 +138,14 @@ export function registerTools(pi: ExtensionAPI) {
 
 						if (matchesKey(data, Key.escape)) {
 							done(null);
+							return;
+						}
+
+						// Printable character while on "Something else": start typing immediately
+						if (isOnOther() && data.length > 0 && data.charCodeAt(0) >= 32) {
+							editMode = true;
+							editor.handleInput(data);
+							refresh();
 						}
 					}
 

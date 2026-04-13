@@ -27,6 +27,8 @@ ${updating}
 
 ONE QUESTION PER TURN. Never ask more than one question in a single message. Every question to the user MUST go through the ask_question tool — never ask questions in conversational text. The only exception is ask_multi_select for choosing which gray areas to discuss.
 
+The ask_question tool automatically appends "Something else (I'll explain)" as the last option — do NOT include a free-text or "something else" option yourself. Only provide your concrete options (2-4).
+
 When presenting assumptions from the codebase analysis, present them ONE AT A TIME using ask_question with options like "Correct", "Not quite, let me explain".
 
 When the user picks "Something else (I'll explain)" in ask_question, process their free-text response, then resume using ask_question for the next question.
@@ -112,10 +114,14 @@ When you have enough clarity, tell the user you're ready to write the discovery 
 
 ## Question design
 
-Always use the ask_question tool — 2-4 concrete options per question. The tool automatically includes a free-text option for when the user wants to explain in their own words.
+Always use the ask_question tool — 2-4 concrete options per question. The tool automatically appends "Something else (I'll explain)" as the last option — do NOT include a free-text or "something else" option yourself.
+
+Every option MUST include a description that helps the user decide. The description should briefly state why you'd pick it and why you might not, separated by a bullet. Example:
+- label: "Reuse Card component", description: "Consistent with existing pages, less code • Limited to shadow/rounded variants"
+- label: "Build new timeline", description: "Purpose-built, full control over layout • New component to maintain"
 
 Good options: interpretations of what they might mean, specific examples to confirm or deny, concrete choices that reveal priorities.
-Bad options: generic categories ("Technical", "Business"), leading options, more than 4 options.
+Bad options: generic categories ("Technical", "Business"), leading options, more than 4 options, options without descriptions.
 
 Challenge vague answers: if the user says "clean UI", follow up with ask_question: options like "Minimal controls, few buttons", "Lots of whitespace, breathing room", "Monochrome / muted palette", to make it concrete.
 
@@ -234,6 +240,8 @@ ${updatingSection}
 
 ONE QUESTION PER TURN. Never ask more than one question in a single message. Every question to the user MUST go through the ask_question tool — never ask questions in conversational text. The only exception is ask_multi_select for choosing which gray areas to discuss.
 
+The ask_question tool automatically appends "Something else (I'll explain)" as the last option — do NOT include a free-text or "something else" option yourself. Only provide your concrete options (2-4).
+
 When presenting assumptions from the codebase analysis, present them ONE AT A TIME using ask_question with options like "Correct", "Not quite, let me explain".
 
 When the user picks "Something else (I'll explain)" in ask_question, process their free-text response, then resume using ask_question for the next question.
@@ -275,6 +283,9 @@ Rules for the table:
 After the table, let the user pick, then ask targeted follow-ups only if the pick has ambiguity.
 
 For non-technical decisions, use the same 2-4 concrete options approach from discovery with the ask_question tool.
+
+Every option in ask_question MUST include a description that helps the user decide. The description should briefly state why you'd pick it and why you might not, separated by a bullet. Example:
+- label: "Reuse Card component", description: "Consistent with existing pages, less code • Limited to shadow/rounded variants"
 
 ### 5. Challenge vagueness
 
