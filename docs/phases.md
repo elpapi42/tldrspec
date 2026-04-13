@@ -5,33 +5,35 @@ tldr-spec has three sequential phases. Each phase reads the artifacts from prior
 ## Discovery
 
 **Command:** `/tldr-discovery <initiative-name>`
-**Reads:** Codebase
+**Reads:** Codebase (lightweight, product-level), user context
 **Produces:** `tldrspec/<name>/discovery.md`
 
-Discovery is the problem space. The goal is to deeply understand what the user wants to build and why, eliminating ambiguity before anything gets specified.
+Discovery is the problem space. The goal is to deeply understand what the user wants to build, for whom, why, and within what constraints -- before anything gets specified. Discovery is domain-agnostic: it works for product managers, engineers, founders, or anyone who owns a problem.
+
+Technical decisions (architecture, technology choices, implementation patterns) are explicitly out of scope -- they belong in specs.
 
 ### How it works
 
-1. **Codebase analysis** -- The LLM explores the codebase first, forming assumptions about existing patterns, conventions, and constraints. Each assumption has a confidence level:
-   - **Confident** -- the code clearly shows this
-   - **Likely** -- the code suggests this but there's room for variation
-   - **Unclear** -- the code can't tell, the user needs to decide
+1. **Context gathering** -- The LLM does a lightweight scan of the codebase (if one exists) to understand the product at a high level -- what it does, who uses it, what capabilities exist. It also asks about business, product, and market context.
 
-2. **Assumption review** -- Assumptions are presented one at a time. The user confirms or corrects each one. This replaces lengthy interviews for existing codebases -- the LLM already knows most of the context.
+2. **Assumption review** -- Assumptions about the context are presented one at a time. The user confirms or corrects each one. This replaces lengthy interviews -- the LLM figures out what it can and only asks about what's unclear.
 
-3. **Gray area identification** -- The LLM identifies 3-4 specific decision points where the user's preference matters. These are concrete choices like "session handling" or "error recovery", not vague categories.
+3. **Problem understanding** -- The LLM digs into the core problem: what's broken, who's affected, what's the cost of not solving it, what triggered this initiative.
 
-4. **Gray area selection** -- The user selects which areas to discuss via a multi-select checkbox interface.
+4. **Gray area identification** -- The LLM identifies 3-4 specific product or business decision points where the user's preference matters. These are concrete choices like "target audience priority" or "MVP scope boundary", not vague categories or technical decisions.
 
-5. **Focused discussion** -- Each selected area is discussed with one question at a time. Every question has concrete options plus a free-text escape hatch. Options always cite existing code when relevant.
+5. **Gray area selection** -- The user selects which areas to discuss via a multi-select checkbox interface.
 
-6. **Artifact writing** -- When there's enough clarity, the LLM writes the discovery document.
+6. **Focused discussion** -- Each selected area is discussed with one question at a time. Every question has concrete options framed in terms of user impact and business tradeoffs, plus a free-text escape hatch and a "let's discuss this" option for open conversation.
+
+7. **Artifact writing** -- When there's enough clarity, the LLM writes the discovery document and suggests which specs to write next.
 
 ### Discovery document structure
 
 ```markdown
 # Discovery: <initiative name>
 
+## Context
 ## Problem
 ## Users / Actors
 ## Goals
@@ -43,7 +45,7 @@ Discovery is the problem space. The goal is to deeply understand what the user w
 ## Open Questions
 ```
 
-The **Decisions** section captures concrete choices made during discovery. The **References** section lists file paths to relevant codebase files with notes on why they matter. The **Deferred Ideas** section preserves ideas that came up but belong in separate work.
+The **Context** section captures business, product, or market context. The **Decisions** section captures product and business choices made during discovery. The **References** section lists relevant context sources (product capabilities, competitor references, user research, codebase files). The **Deferred Ideas** section preserves ideas that belong in separate work.
 
 ## Specify
 
@@ -53,15 +55,26 @@ The **Decisions** section captures concrete choices made during discovery. The *
 
 Specify is the solution space. Discovery defined what we're building and why -- specify defines how it should work through concrete decisions.
 
+Specs can cover any domain -- not just technical engineering:
+
+- **product** -- user flows, acceptance criteria, interaction patterns, edge cases
+- **technical** -- architecture, data models, API contracts, infrastructure
+- **business** -- pricing, go-to-market, compliance, operational processes
+- **security** -- threat model, permissions, audit requirements, data handling
+- **data** -- schemas, relationships, migrations, analytics
+- **ux** -- design system, accessibility, responsive behavior, content strategy
+
 ### How it works
 
-1. **Orient** -- If no spec name was provided, the LLM asks what aspect to specify. It reads the discovery document and all existing specs.
+1. **Orient** -- If no spec name was provided, the LLM suggests spec types based on what the discovery revealed. It reads the discovery document and all existing specs.
 
-2. **Codebase analysis** -- Same assumption-based flow as discovery, but focused on solution-space patterns. The LLM cites existing code when presenting options.
+2. **Understand purpose** -- The LLM asks what this spec should cover, inferring likely purposes from the spec name and discovery document.
 
-3. **Gray area identification** -- 3-4 concrete decision points about how something should work (not whether it should exist).
+3. **Codebase analysis** -- Assumption-based flow focused on the spec's domain. The LLM cites existing code when presenting options. (Depth adapts to spec type -- deep for technical specs, lighter for product or business specs.)
 
-4. **Research-backed options** -- For technical decisions, the LLM presents comparison tables:
+4. **Gray area identification** -- 3-4 concrete decision points about how something should work (not whether it should exist).
+
+5. **Research-backed options** -- For technical decisions, the LLM presents comparison tables:
 
    | Option | Pros | Cons | Complexity | Recommendation |
    |--------|------|------|------------|----------------|
@@ -71,13 +84,13 @@ Specify is the solution space. Discovery defined what we're building and why -- 
    - Complexity = impact surface + risk (never time estimates)
    - Recommendations are always conditional ("Recommended if mobile-first"), never single-winner rankings
 
-5. **Vagueness challenge** -- Every decision is challenged if vague. "Clean UI" becomes "minimal controls with lots of whitespace" or "monochrome palette with subtle borders."
+6. **Vagueness challenge** -- Every decision is challenged if vague. "Clean UI" becomes "minimal controls with lots of whitespace" or "monochrome palette with subtle borders."
 
-6. **Coverage audit** -- Before writing, every goal and decision from the discovery document is checked. If anything is missing and not covered by another spec, the user is asked whether to include it or create a separate spec.
+7. **Coverage audit** -- Before writing, every goal and decision from the discovery document is checked. If anything is missing and not covered by another spec, the user is asked whether to include it or create a separate spec.
 
-7. **Specificity test** -- Every decision is tested: "Could a different AI implement this without asking clarifying questions?" Failures are resolved before writing.
+8. **Specificity test** -- Every decision is tested: "Could a different AI implement this without asking clarifying questions?" Failures are resolved before writing.
 
-8. **Artifact writing** -- The spec is written with numbered decision IDs (D-01, D-02, etc.).
+9. **Artifact writing** -- The spec is written with numbered decision IDs (D-01, D-02, etc.).
 
 ### Spec structure
 

@@ -2,7 +2,9 @@
 
 Stop building the wrong thing.
 
-tldr-spec is a [pi](https://github.com/mariozechner/pi) extension that turns fuzzy ideas into actionable specs through structured conversation. Three phases, three commands. The AI reads your codebase first, asks only what it can't figure out, and produces artifacts specific enough to implement without follow-up questions.
+tldr-spec is a [pi](https://github.com/mariozechner/pi) extension that turns fuzzy ideas into actionable specs through structured conversation. Three phases, three commands. The AI understands your problem first, asks only what it can't figure out, and produces artifacts specific enough to implement without follow-up questions.
+
+Built for product-engineering teams, not just engineers. A PM can run discovery, an engineer can write the technical spec, and everyone works from the same shared context.
 
 ## The Problem
 
@@ -18,19 +20,19 @@ Planning either takes too long or doesn't happen. Both are expensive.
 /tldr-plan auth-system          -> plan.md
 ```
 
-**Discovery** -- The AI explores your codebase, forms assumptions about what exists, and presents them one at a time for you to confirm or correct. Then it identifies the gray areas -- decisions that would change the outcome -- and walks you through each one with concrete options. You pick, it records.
+**Discovery** -- Problem space. The AI understands your product context, forms assumptions, and presents them one at a time for you to confirm or correct. Then it identifies the gray areas -- product and business decisions that would change the outcome -- and walks you through each one with concrete options. No technical decisions here -- just what you're building, for whom, and why.
 
-**Specify** -- Same approach, but solution-space. For technical decisions, you get comparison tables with pros, cons, complexity, and conditional recommendations. Before writing, the AI audits every discovery goal is covered and every decision passes the specificity test: "Could a different AI implement this without asking clarifying questions?"
+**Specify** -- Solution space. Write specs for any domain: product, technical, business, security, data, UX. For technical decisions, you get comparison tables with pros, cons, complexity, and conditional recommendations. Before writing, the AI audits every discovery goal is covered and every decision passes the specificity test: "Could a different AI implement this without asking clarifying questions?"
 
 **Plan** -- Reads everything, breaks it into tasks with dependencies and affected files. Each task has enough context to execute independently.
 
 ## What Makes It Different
 
-**Codebase-first.** Before asking a single question, the AI reads your code. It knows you use JWT auth, that you have a Card component, that your API follows REST conventions. It presents what it already knows and only asks about what the code can't tell it.
+**Problem-first, not code-first.** Discovery understands the problem, users, and business context before anyone touches implementation. Technical decisions come later, in specs, grounded in why they matter.
 
-**One question at a time.** No walls of text. No multi-part questions. Every interaction is a single question with concrete options, plus a free-text escape hatch if none of the options fit. Select and move on.
+**One question at a time.** No walls of text. No multi-part questions. Every interaction is a single question with concrete options, a free-text input if none fit, and a "let's discuss this" escape hatch for open conversation. Select and move on.
 
-**Code context on every option.** Instead of "cards vs. list vs. timeline", you get "Reuse your Card component at `src/components/Card.tsx` (shadow/rounded variants) vs. Reuse ListView vs. Build something new." Decisions grounded in what you actually have.
+**Multi-domain specs.** Not just technical architecture. Write product specs for user flows, business specs for go-to-market, security specs for threat models -- whatever the initiative needs. Discovery provides the shared context they all reference.
 
 **Gray areas, not checklists.** The AI doesn't walk through a generic template. It identifies the specific decisions that would change the result and lets you choose which ones to discuss. Everything else, it handles.
 
