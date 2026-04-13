@@ -5,15 +5,14 @@
   "type": "module",
   "keywords": ["pi-package"],
   "files": [
-    "index.ts",
-    "phases.ts",
-    "state.ts"
+    "src/"
   ],
   "pi": {
-    "extensions": ["./index.ts"]
+    "extensions": ["./src/index.ts"]
   },
   "peerDependencies": {
     "@mariozechner/pi-coding-agent": "*",
+    "@mariozechner/pi-tui": "*",
     "@sinclair/typebox": "*"
   },
   "license": "MIT",

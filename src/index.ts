@@ -11,12 +11,11 @@
  * Artifacts are stored in ./initiatives/<initiative-name>/
  *
  * The LLM drives the conversation in each phase, guided by phase-specific
- * system prompts. The only custom tool is ask_question for multiple-choice
- * interactions — everything else uses pi's built-in tools.
+ * system prompts. Custom tools (ask_question, ask_multi_select) handle all
+ * user interactions — everything else uses pi's built-in tools.
  */
 
 import type { ExtensionAPI, ExtensionContext } from "@mariozechner/pi-coding-agent";
-import { Type } from "@sinclair/typebox";
 import { getPhasePrompt } from "./phases.js";
 import {
 	type Phase,
@@ -27,45 +26,14 @@ import {
 	readArtifact,
 	specPath,
 } from "./state.js";
+import { registerTools } from "./tools.js";
 
 export default function tldrSpec(pi: ExtensionAPI) {
 	let session: SessionState | null = null;
 
-	// ── ask_question tool ──────────────────────────────────────────────
+	// ── Tools ──────────────────────────────────────────────────────────
 
-	pi.registerTool({
-		name: "ask_question",
-		label: "Ask Question",
-		description:
-			"Ask the user a multiple-choice question. Use this when you need the user to decide between concrete options. For open-ended questions, just ask in normal conversation.",
-		parameters: Type.Object({
-			question: Type.String({ description: "The question to ask" }),
-			options: Type.Array(Type.String({ description: "A choice the user can pick" }), {
-				description: "The available choices (2-6 options recommended)",
-				minItems: 2,
-			}),
-		}),
-
-		async execute(_toolCallId, params, _signal, _onUpdate, ctx) {
-			if (!ctx.hasUI) {
-				return {
-					content: [{ type: "text", text: "UI not available — running in non-interactive mode." }],
-				};
-			}
-
-			const answer = await ctx.ui.select(params.question, params.options);
-
-			if (!answer) {
-				return {
-					content: [{ type: "text", text: "User dismissed the question without answering." }],
-				};
-			}
-
-			return {
-				content: [{ type: "text", text: `User selected: ${answer}` }],
-			};
-		},
-	});
+	registerTools(pi);
 
 	// ── Helper to start a phase ────────────────────────────────────────
 

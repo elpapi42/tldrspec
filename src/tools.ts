@@ -1,0 +1,410 @@
+/**
+ * Custom tools for tldr-spec.
+ *
+ * ask_question    — Single question with numbered options + free-text input
+ * ask_multi_select — Checkbox multi-select for choosing topics to discuss
+ */
+
+import type { ExtensionAPI } from "@mariozechner/pi-coding-agent";
+import { Editor, type EditorTheme, Key, matchesKey, Text, truncateToWidth } from "@mariozechner/pi-tui";
+import { Type } from "@sinclair/typebox";
+
+interface OptionWithDesc {
+	label: string;
+	description?: string;
+}
+
+interface QuestionDetails {
+	question: string;
+	options: string[];
+	answer: string | null;
+	wasCustom?: boolean;
+}
+
+interface MultiSelectDetails {
+	question: string;
+	options: string[];
+	selected: string[];
+}
+
+export function registerTools(pi: ExtensionAPI) {
+	// ── ask_question ──────────────────────────────────────────────────
+
+	pi.registerTool({
+		name: "ask_question",
+		label: "Ask Question",
+		description:
+			"Ask the user a single question with concrete options. Always includes a free-text option at the bottom. Use this for EVERY user interaction — never ask questions in conversation text.",
+		parameters: Type.Object({
+			question: Type.String({ description: "The question to ask" }),
+			options: Type.Array(
+				Type.Object({
+					label: Type.String({ description: "Option label" }),
+					description: Type.Optional(Type.String({ description: "Brief context shown below the option" })),
+				}),
+				{ description: "2-6 concrete options", minItems: 2 },
+			),
+		}),
+
+		async execute(_toolCallId, params, _signal, _onUpdate, ctx) {
+			if (!ctx.hasUI) {
+				return {
+					content: [{ type: "text", text: "UI not available — running in non-interactive mode." }],
+					details: { question: params.question, options: params.options.map((o) => o.label), answer: null } as QuestionDetails,
+				};
+			}
+
+			type DisplayOption = OptionWithDesc & { isOther?: boolean };
+			const allOptions: DisplayOption[] = [...params.options, { label: "Something else (I'll explain)", isOther: true }];
+
+			const result = await ctx.ui.custom<{ answer: string; wasCustom: boolean; index?: number } | null>(
+				(tui, theme, _kb, done) => {
+					let optionIndex = 0;
+					let editMode = false;
+					let cachedLines: string[] | undefined;
+
+					const editorTheme: EditorTheme = {
+						borderColor: (s) => theme.fg("accent", s),
+						selectList: {
+							selectedPrefix: (t) => theme.fg("accent", t),
+							selectedText: (t) => theme.fg("accent", t),
+							description: (t) => theme.fg("muted", t),
+							scrollInfo: (t) => theme.fg("dim", t),
+							noMatch: (t) => theme.fg("warning", t),
+						},
+					};
+					const editor = new Editor(tui, editorTheme);
+
+					editor.onSubmit = (value) => {
+						const trimmed = value.trim();
+						if (trimmed) {
+							done({ answer: trimmed, wasCustom: true });
+						} else {
+							editMode = false;
+							editor.setText("");
+							refresh();
+						}
+					};
+
+					function refresh() {
+						cachedLines = undefined;
+						tui.requestRender();
+					}
+
+					function handleInput(data: string) {
+						if (editMode) {
+							if (matchesKey(data, Key.escape)) {
+								editMode = false;
+								editor.setText("");
+								refresh();
+								return;
+							}
+							editor.handleInput(data);
+							refresh();
+							return;
+						}
+
+						if (matchesKey(data, Key.up)) {
+							optionIndex = Math.max(0, optionIndex - 1);
+							refresh();
+							return;
+						}
+						if (matchesKey(data, Key.down)) {
+							optionIndex = Math.min(allOptions.length - 1, optionIndex + 1);
+							refresh();
+							return;
+						}
+
+						if (matchesKey(data, Key.enter)) {
+							const selected = allOptions[optionIndex];
+							if (selected.isOther) {
+								editMode = true;
+								refresh();
+							} else {
+								done({ answer: selected.label, wasCustom: false, index: optionIndex + 1 });
+							}
+							return;
+						}
+
+						if (matchesKey(data, Key.escape)) {
+							done(null);
+						}
+					}
+
+					function render(width: number): string[] {
+						if (cachedLines) return cachedLines;
+
+						const lines: string[] = [];
+						const add = (s: string) => lines.push(truncateToWidth(s, width));
+
+						add(theme.fg("accent", "─".repeat(width)));
+						add(theme.fg("text", ` ${params.question}`));
+						lines.push("");
+
+						for (let i = 0; i < allOptions.length; i++) {
+							const opt = allOptions[i];
+							const selected = i === optionIndex;
+							const prefix = selected ? theme.fg("accent", "> ") : "  ";
+
+							if (opt.isOther && editMode) {
+								add(prefix + theme.fg("accent", `${i + 1}. ${opt.label} ✎`));
+							} else if (selected) {
+								add(prefix + theme.fg("accent", `${i + 1}. ${opt.label}`));
+							} else {
+								add(`  ${theme.fg("text", `${i + 1}. ${opt.label}`)}`);
+							}
+
+							if (opt.description) {
+								add(`     ${theme.fg("muted", opt.description)}`);
+							}
+						}
+
+						if (editMode) {
+							lines.push("");
+							add(theme.fg("muted", " Your answer:"));
+							for (const line of editor.render(width - 2)) {
+								add(` ${line}`);
+							}
+						}
+
+						lines.push("");
+						if (editMode) {
+							add(theme.fg("dim", " Enter to submit • Esc to go back"));
+						} else {
+							add(theme.fg("dim", " ↑↓ navigate • Enter to select • Esc to cancel"));
+						}
+						add(theme.fg("accent", "─".repeat(width)));
+
+						cachedLines = lines;
+						return lines;
+					}
+
+					return {
+						render,
+						invalidate: () => {
+							cachedLines = undefined;
+						},
+						handleInput,
+					};
+				},
+			);
+
+			const simpleOptions = params.options.map((o) => o.label);
+
+			if (!result) {
+				return {
+					content: [{ type: "text", text: "User cancelled the selection." }],
+					details: { question: params.question, options: simpleOptions, answer: null } as QuestionDetails,
+				};
+			}
+
+			if (result.wasCustom) {
+				return {
+					content: [{ type: "text", text: `User wrote: ${result.answer}` }],
+					details: { question: params.question, options: simpleOptions, answer: result.answer, wasCustom: true } as QuestionDetails,
+				};
+			}
+
+			return {
+				content: [{ type: "text", text: `User selected: ${result.index}. ${result.answer}` }],
+				details: { question: params.question, options: simpleOptions, answer: result.answer, wasCustom: false } as QuestionDetails,
+			};
+		},
+
+		renderCall(args, theme) {
+			let text = theme.fg("toolTitle", theme.bold("question ")) + theme.fg("muted", args.question);
+			const opts = Array.isArray(args.options) ? args.options : [];
+			if (opts.length) {
+				const labels = opts.map((o: OptionWithDesc) => o.label);
+				const numbered = [...labels, "Something else (I'll explain)"].map((o, i) => `${i + 1}. ${o}`);
+				text += `\n${theme.fg("dim", `  Options: ${numbered.join(", ")}`)}`;
+			}
+			return new Text(text, 0, 0);
+		},
+
+		renderResult(result, _options, theme) {
+			const details = result.details as QuestionDetails | undefined;
+			if (!details) {
+				const text = result.content[0];
+				return new Text(text?.type === "text" ? text.text : "", 0, 0);
+			}
+
+			if (details.answer === null) {
+				return new Text(theme.fg("warning", "Cancelled"), 0, 0);
+			}
+
+			if (details.wasCustom) {
+				return new Text(theme.fg("success", "✓ ") + theme.fg("muted", "(wrote) ") + theme.fg("accent", details.answer), 0, 0);
+			}
+			const idx = details.options.indexOf(details.answer) + 1;
+			const display = idx > 0 ? `${idx}. ${details.answer}` : details.answer;
+			return new Text(theme.fg("success", "✓ ") + theme.fg("accent", display), 0, 0);
+		},
+	});
+
+	// ── ask_multi_select ──────────────────────────────────────────────
+
+	pi.registerTool({
+		name: "ask_multi_select",
+		label: "Multi Select",
+		description:
+			"Let the user select multiple items from a list using checkboxes. Use when the user needs to choose which topics or areas to discuss. Requires at least one selection.",
+		parameters: Type.Object({
+			question: Type.String({ description: "The question to ask" }),
+			options: Type.Array(
+				Type.Object({
+					label: Type.String({ description: "Option label" }),
+					description: Type.Optional(Type.String({ description: "Brief context shown below the option" })),
+				}),
+				{ description: "Items to select from", minItems: 2 },
+			),
+		}),
+
+		async execute(_toolCallId, params, _signal, _onUpdate, ctx) {
+			if (!ctx.hasUI) {
+				return {
+					content: [{ type: "text", text: "UI not available — running in non-interactive mode." }],
+					details: { question: params.question, options: params.options.map((o) => o.label), selected: [] } as MultiSelectDetails,
+				};
+			}
+
+			const checkboxes = params.options.map((o) => ({ ...o, checked: false }));
+			const totalItems = checkboxes.length + 1; // options + Done button
+
+			const result = await ctx.ui.custom<string[] | null>((tui, theme, _kb, done) => {
+				let optionIndex = 0;
+				let cachedLines: string[] | undefined;
+
+				function refresh() {
+					cachedLines = undefined;
+					tui.requestRender();
+				}
+
+				function handleInput(data: string) {
+					if (matchesKey(data, Key.up)) {
+						optionIndex = Math.max(0, optionIndex - 1);
+						refresh();
+						return;
+					}
+					if (matchesKey(data, Key.down)) {
+						optionIndex = Math.min(totalItems - 1, optionIndex + 1);
+						refresh();
+						return;
+					}
+
+					if (matchesKey(data, Key.enter) || data === " ") {
+						if (optionIndex === checkboxes.length) {
+							// "Done" selected
+							const selected = checkboxes.filter((o) => o.checked).map((o) => o.label);
+							if (selected.length > 0) {
+								done(selected);
+							}
+							// Ignore if nothing selected
+						} else {
+							checkboxes[optionIndex].checked = !checkboxes[optionIndex].checked;
+							refresh();
+						}
+						return;
+					}
+
+					if (matchesKey(data, Key.escape)) {
+						done(null);
+					}
+				}
+
+				function render(width: number): string[] {
+					if (cachedLines) return cachedLines;
+
+					const lines: string[] = [];
+					const add = (s: string) => lines.push(truncateToWidth(s, width));
+					const selectedCount = checkboxes.filter((o) => o.checked).length;
+
+					add(theme.fg("accent", "─".repeat(width)));
+					add(theme.fg("text", ` ${params.question}`));
+					lines.push("");
+
+					for (let i = 0; i < checkboxes.length; i++) {
+						const opt = checkboxes[i];
+						const focused = i === optionIndex;
+						const checkbox = opt.checked ? theme.fg("success", "[x]") : theme.fg("dim", "[ ]");
+						const prefix = focused ? theme.fg("accent", "> ") : "  ";
+
+						if (focused) {
+							add(prefix + checkbox + " " + theme.fg("accent", opt.label));
+						} else {
+							add(prefix + checkbox + " " + theme.fg("text", opt.label));
+						}
+
+						if (opt.description) {
+							add(`       ${theme.fg("muted", opt.description)}`);
+						}
+					}
+
+					lines.push("");
+					const doneFocused = optionIndex === checkboxes.length;
+					if (selectedCount > 0) {
+						const label = `Done (${selectedCount} selected)`;
+						add(doneFocused ? theme.fg("accent", `> ${label}`) : `  ${theme.fg("text", label)}`);
+					} else {
+						const label = "Done (select at least one)";
+						add(doneFocused ? theme.fg("dim", `> ${label}`) : `  ${theme.fg("dim", label)}`);
+					}
+
+					lines.push("");
+					add(theme.fg("dim", " ↑↓ navigate • Enter/Space to toggle • Esc to cancel"));
+					add(theme.fg("accent", "─".repeat(width)));
+
+					cachedLines = lines;
+					return lines;
+				}
+
+				return {
+					render,
+					invalidate: () => {
+						cachedLines = undefined;
+					},
+					handleInput,
+				};
+			});
+
+			const simpleOptions = params.options.map((o) => o.label);
+
+			if (!result) {
+				return {
+					content: [{ type: "text", text: "User cancelled the selection." }],
+					details: { question: params.question, options: simpleOptions, selected: [] } as MultiSelectDetails,
+				};
+			}
+
+			return {
+				content: [{ type: "text", text: `User selected: ${result.join(", ")}` }],
+				details: { question: params.question, options: simpleOptions, selected: result } as MultiSelectDetails,
+			};
+		},
+
+		renderCall(args, theme) {
+			let text = theme.fg("toolTitle", theme.bold("multi-select ")) + theme.fg("muted", args.question);
+			const opts = Array.isArray(args.options) ? args.options : [];
+			if (opts.length) {
+				const labels = opts.map((o: OptionWithDesc) => o.label);
+				text += `\n${theme.fg("dim", `  Options: ${labels.join(", ")}`)}`;
+			}
+			return new Text(text, 0, 0);
+		},
+
+		renderResult(result, _options, theme) {
+			const details = result.details as MultiSelectDetails | undefined;
+			if (!details) {
+				const text = result.content[0];
+				return new Text(text?.type === "text" ? text.text : "", 0, 0);
+			}
+
+			if (details.selected.length === 0) {
+				return new Text(theme.fg("warning", "Cancelled"), 0, 0);
+			}
+
+			const display = details.selected.map((s, i) => `${i + 1}. ${s}`).join(", ");
+			return new Text(theme.fg("success", "✓ ") + theme.fg("accent", display), 0, 0);
+		},
+	});
+}
