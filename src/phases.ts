@@ -269,7 +269,7 @@ ${updatingSection}
 
 ## Interaction rules
 
-ONE QUESTION PER TURN. Never ask more than one question in a single message. Every question to the user MUST go through the ask_question tool — never ask questions in conversational text. NEVER use ask_multi_select for regular questions — it is ONLY for the gray area selection step where the user picks which topics to discuss.
+ONE QUESTION PER TURN. Never ask more than one question in a single message. Every question to the user MUST go through the ask_question tool — never ask questions in conversational text. NEVER use ask_multi_select for regular questions — it is ONLY for scope selection (step 1) and gray area selection (step 3) where the user picks multiple items.
 
 The ask_question tool automatically appends two special options — do NOT include these yourself. Only provide your concrete options (2-4):
 - "Something else (I'll explain)" — inline text input for short answers
@@ -289,14 +289,15 @@ IMPORTANT: Also switch to conversational mode when the user picks an option that
 
 - If no spec name was provided, read the discovery document and suggest 2-3 spec types that would be most valuable for this initiative using the ask_question tool. Base suggestions on what the discovery revealed — e.g., if the discovery identified complex user flows, suggest a product spec; if it surfaced data handling constraints, suggest a data spec. Don't just list generic types.
 - Read the discovery document and all existing specs as your source of truth.
-- Ask the user what this spec should cover using ask_question. Infer 2-3 likely purposes from the spec name and the discovery document, and present them as options. Each option should be specific — not just a category, but a concrete scope statement.
+- Ask the user what this spec should cover using ask_multi_select. Infer 3-5 scope areas from the spec name and the discovery document, and present them as options. Each option should be specific — not just a category, but a concrete scope statement. The user selects all areas they want this spec to cover.
 
 Example for a spec named "api-design":
 - "REST endpoint contracts — routes, payloads, validation, error responses"
 - "API authentication flow — token handling, refresh logic, permission checks"
-- (the user can always type their own purpose via the inline input)
+- "Error handling conventions — status codes, error shapes, retry semantics"
+- "Versioning strategy — URL vs. header, deprecation policy"
 
-This purpose statement anchors everything downstream — your codebase analysis, gray areas, and decisions should all serve this purpose. If the user's stated purpose is already well-covered by an existing spec, tell them before proceeding.
+These scope areas are often complementary, not conflicting — the user may want several in the same spec. The selected areas anchor everything downstream — your codebase analysis, gray areas, and decisions should all serve this scope. If any selected area is already well-covered by an existing spec, tell the user before proceeding.
 
 ### 2. Quick scan + assumptions
 
@@ -306,15 +307,19 @@ Form assumptions with confidence levels (Confident / Likely / Unclear) — just 
 
 Throughout the entire spec process, ALWAYS cite existing code when presenting options. Frame options in terms of "reuse X" vs. "build new" with file paths.
 
-### 3. Identify gray areas
+### 3. Identify gray areas — MANDATORY, DO NOT SKIP
+
+STOP. You MUST complete this step before writing any spec. Do NOT jump to writing after assumptions.
 
 From what you now know (discovery, existing specs, codebase scan, corrected assumptions), identify 3-4 concrete decision points specific to this spec. These are solution-space decisions — how something should work, not whether it should exist.
 
-Present them to the user and let them choose which to discuss using the ask_multi_select tool. Keep a running list of all gray areas — both resolved and open — so you can present the full picture at each checkpoint.
+You MUST present them to the user using the ask_multi_select tool and let them choose which to discuss. Keep a running list of all gray areas — both resolved and open — so you can present the full picture at each checkpoint.
 
-### 4. Discuss selected gray areas
+Do NOT proceed to writing. Do NOT make these decisions yourself. The user MUST select and discuss gray areas before any spec is written.
 
-For each selected gray area, do **focused research** — dig into the specific codebase files, patterns, and dependencies relevant to that decision. This is the deep dive, not the quick scan from step 2.
+### 4. Discuss selected gray areas — MANDATORY, DO NOT SKIP
+
+For EACH selected gray area, do **focused research** — dig into the specific codebase files, patterns, and dependencies relevant to that decision. This is the deep dive, not the quick scan from step 2.
 
 For technical decisions, present a comparison table before asking:
 
@@ -341,18 +346,18 @@ Challenge vague decisions immediately as they come up — don't wait for a separ
 
 Every decision must be specific enough that two different implementers would produce similar results.
 
-### 5. Checkpoint
+### 5. Checkpoint — MANDATORY after every discussion round
 
-After discussing all selected gray areas, pause and take stock. Present the user with a summary:
+STOP. After discussing all selected gray areas, you MUST pause and present the user with a summary:
 - **Resolved:** gray areas that now have concrete decisions
 - **New:** any new decision points that surfaced during discussion (this is common — discussing one area often reveals others)
 - **Still open:** any previously identified areas that weren't selected
 
-Then use ask_question to let the user choose:
+You MUST then use ask_question to let the user choose:
 - "Explore new/remaining gray areas" — loop back to step 3 with the updated list
 - "Proceed to finalize the spec" — continue to step 6
 
-This checkpoint can repeat as many times as needed. Each loop refines the spec's decisions further.
+Do NOT skip this checkpoint. Do NOT proceed to writing without asking the user. This checkpoint can repeat as many times as needed. Each loop refines the spec's decisions further.
 
 ### 6. Coverage audit (mandatory before writing)
 
@@ -387,6 +392,7 @@ When all areas are discussed and both the coverage audit and specificity test pa
 
 ## Anti-patterns to avoid
 
+- SKIPPING STEPS — every step from 1 through 8 must be completed in order. Do NOT jump from assumptions to writing. Do NOT skip gray areas. Do NOT skip the checkpoint.
 - Writing specs with vague language ("should be intuitive", "modern feel")
 - Making decisions the user should make without asking
 - Ignoring existing code patterns when viable alternatives exist in the codebase
@@ -395,7 +401,7 @@ When all areas are discussed and both the coverage audit and specificity test pa
 
 ## Output
 
-Save the specification to tldrspec/${opts.initiative}/specs/<spec-name>.md using the write tool. The spec should contain:
+Save the specification to tldrspec/${opts.initiative}/specs/${opts.currentSpecName ? `${opts.currentSpecName}.md` : "<spec-name>.md (use the spec name established in step 1)"} using the write tool. The spec should contain:
 
 1. A brief context section linking back to discovery decisions
 2. Concrete decisions grouped by area, each with a decision ID (D-01, D-02, etc.)
