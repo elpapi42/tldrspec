@@ -14,13 +14,13 @@ Technical decisions (architecture, technology choices, implementation patterns) 
 
 ### How it works
 
-1. **Context gathering** -- The LLM does a lightweight scan of the codebase (if one exists) to understand the product at a high level -- what it does, who uses it, what capabilities exist. It also asks about business, product, and market context.
+1. **Context gathering** -- The LLM follows a prescribed scan recipe: directory listing, README, package manifest, route/entry files, then one representative file per major directory. This produces consistent baseline context regardless of codebase size. It also asks about business, product, and market context.
 
 2. **Assumption review** -- Assumptions about the context are presented one at a time. The user confirms or corrects each one. This replaces lengthy interviews -- the LLM figures out what it can and only asks about what's unclear.
 
 3. **Problem understanding** -- The LLM digs into the core problem: what's broken, who's affected, what's the cost of not solving it, what triggered this initiative.
 
-4. **Gray area identification** -- The LLM identifies 3-4 specific product or business decision points where the user's preference matters. These are concrete choices like "target audience priority" or "MVP scope boundary", not vague categories or technical decisions.
+4. **Gray area identification** -- The LLM identifies 3-4 specific forks where two reasonable people would choose differently. Before presenting, it runs a self-check: can it articulate 2+ concrete options for each area? If not, it reframes the area as a more specific decision. These are concrete choices like "target audience priority" or "MVP scope boundary", not vague categories or technical decisions.
 
 5. **Gray area selection** -- The user selects which areas to discuss via a multi-select checkbox interface.
 
@@ -68,9 +68,9 @@ Specs can cover any domain -- not just technical engineering:
 
 1. **Orient + Purpose** -- The LLM reads the discovery document and all existing specs. It then presents an assumption about the spec's intent ("I think this spec is about X -- is that right?") for the user to confirm or correct. Once intent is established, it generates scope areas via multi-select grounded in the user's actual stated intent. The user selects all areas they want this spec to cover.
 
-2. **Quick scan + assumptions** -- A lightweight codebase scan builds baseline understanding. The LLM forms assumptions with confidence levels (Confident / Likely / Unclear) and presents them one at a time for correction. This is just enough to identify what exists -- deep research happens later, per gray area.
+2. **Quick scan + assumptions** -- The LLM follows a prescribed scan recipe: grep/glob for files related to the spec's scope, read the 3-5 most relevant files, check imports and dependencies, and note related tests/configs/schemas. It forms assumptions with confidence levels (Confident / Likely / Unclear) and presents them one at a time for correction. Deep research happens later, per gray area.
 
-3. **Frame boundary + find gaps** -- The LLM first frames what this spec delivers and surfaces relevant decisions already locked from discovery and existing specs. Then it asks: "If the plan phase read this spec right now, what would it get stuck on?" It identifies 3-4 gaps -- ambiguities, undefined behaviors, or decisions that would cause two implementers to build different things. Each gap is annotated with WHY it would block planning, plus code context and prior decision context. The user selects which to discuss via multi-select.
+3. **Frame boundary + find gaps** -- The LLM first frames what this spec delivers and surfaces relevant decisions already locked from discovery and existing specs. Then it asks: "If the plan phase read this spec right now, what would it get stuck on?" It identifies 3-4 gaps -- ambiguities, undefined behaviors, or decisions that would cause two implementers to build different things. Before presenting, it runs a self-check: can it articulate 2+ concrete approaches for each gap? If not, it reframes the gap as a more specific decision. Each gap is annotated with WHY it would block planning, plus code context and prior decision context. The user selects which to discuss via multi-select.
 
 4. **Focused discussion** -- Each selected gap gets announced, then its own deep research pass -- the LLM digs into the specific files, patterns, and dependencies relevant to that decision. For technical decisions, it presents comparison tables:
 
@@ -145,6 +145,13 @@ Plan breaks specifications into executable tasks. Each task has enough context f
 
 ## Risks / Open Items
 ```
+
+## Re-entry (Refinement)
+
+Re-running any command on an existing initiative refines the artifact instead of starting over. On re-entry, the LLM analyzes the existing artifact and presents a structured assessment of what needs work:
+
+- **Discovery re-entry**: Identifies thin sections, unresolved open questions, stale content, and missing sections. Presents the analysis and lets the user choose where to focus.
+- **Specify re-entry**: Identifies vague decisions (specificity test failures), missing coverage (unaddressed discovery goals), stale code references, and open gaps. Presents the analysis and runs the relevant specify steps for selected areas.
 
 ## Cross-Phase Consistency
 

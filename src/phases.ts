@@ -11,7 +11,15 @@ export function discoveryPrompt(opts: {
 }): string {
 	const updating = opts.existingDiscovery
 		? `
-A previous discovery document already exists for this initiative. Read it carefully — your job is to REFINE and IMPROVE it, not start over. Fill gaps, resolve open questions, and correct anything that no longer holds.
+A previous discovery document already exists for this initiative. Read it carefully — your job is to REFINE and IMPROVE it, not start over.
+
+Before asking any questions, analyze the existing document and identify what needs attention:
+- **Thin sections** — any section with less than 2-3 substantive points needs expansion
+- **Open questions** — the Open Questions section lists what was left unresolved last time; address these first
+- **Stale content** — anything that no longer reflects reality based on what you can see in the codebase
+- **Missing sections** — any expected section (Context, Problem, Users/Actors, Goals, Non-Goals, Constraints, Decisions) that's absent entirely
+
+Present this analysis to the user: "Here's what I think needs work: [list]. Which should we focus on?" Then work through the selected areas using the normal discovery flow.
 
 <existing-discovery>
 ${opts.existingDiscovery}
@@ -37,9 +45,9 @@ When presenting assumptions, present them ONE AT A TIME using ask_question with 
 
 When the user picks "Something else (I'll explain)" in ask_question, process their free-text response, then resume using ask_question for the next question.
 
-When the user picks "Let's discuss this", switch to CONVERSATIONAL MODE: ask follow-ups in plain text, let the user explain freely, have a natural back-and-forth. Do NOT use ask_question during conversational mode. When you've understood enough, explicitly tell the user you're resuming structured questions, then continue with ask_question.
+When the user picks "Let's discuss this", switch to CONVERSATIONAL MODE: ask follow-ups in plain text, let the user explain freely, have a natural back-and-forth. Do NOT use ask_question during conversational mode. When you've understood enough, call the resume_structured tool with a summary of what you learned — this signals the transition back to structured questions. Then continue with ask_question.
 
-IMPORTANT: Also switch to conversational mode when the user picks an option that inherently requires elaboration — like "Not quite, let me explain", "I disagree", or any option where the user clearly needs to explain something. Do NOT respond to these by creating another ask_question to receive their input. Instead, acknowledge their choice in plain text and let them explain freely.
+IMPORTANT: Also switch to conversational mode when the user picks an option that inherently requires elaboration — like "Not quite, let me explain", "I disagree", or any option where the user clearly needs to explain something. Do NOT respond to these by creating another ask_question to receive their input. Instead, acknowledge their choice in plain text and let them explain freely. When you've understood their point, call resume_structured to transition back.
 
 ## What discovery covers — and what it does NOT
 
@@ -67,7 +75,14 @@ If a codebase exists, you may do a lightweight scan to understand what the produ
 
 Before asking questions, build an understanding of the landscape:
 
-**If a codebase exists:** Do a lightweight scan to understand the product — what it does, who uses it, what capabilities exist. You're looking at the product level, not the code level. Think "this app has user auth, a dashboard, and a matching system" — not "auth uses JWT in src/lib/auth.ts."
+**If a codebase exists:** Scan the codebase in this order, stopping after each step to form assumptions:
+1. Top-level directory listing to understand project structure
+2. README.md (if it exists) for product description and purpose
+3. Package manifest (package.json, pyproject.toml, Cargo.toml, etc.) for dependencies and project type
+4. Route/page files or entry points to understand user-facing structure
+5. One representative file from each major directory to understand capabilities
+
+You're looking at the product level, not the code level. Think "this app has user auth, a dashboard, and a matching system" — not "auth uses JWT in src/lib/auth.ts." Stop scanning after these 5 steps. Do NOT read further into implementation details.
 
 **From the user:** Understand the broader context. What's the business or organization? What's the market? Is this a new product, a feature in an existing product, or a redesign? What prompted this initiative now?
 
@@ -90,10 +105,19 @@ Don't accept surface-level answers. If the user says "we need better matching," 
 
 ### 3. Identify gray areas
 
-Gray areas are product and business decisions that could go multiple ways and would change the outcome. Generate 3-4 specific gray areas — not generic categories, but concrete decision points about the problem and scope.
+Gray areas are forks where two reasonable people would choose differently — and the choice changes what gets built. Generate 3-4 of these as concrete decision points, not abstract categories.
 
-Good: "Target audience priority", "MVP scope boundary", "Success metrics", "Migration vs. fresh start", "Self-serve vs. guided onboarding", "Rollout strategy"
-Bad: "UI", "UX", "Technical", "Architecture", "Design", "Database"
+**Self-check before presenting:** For each gray area, can you immediately think of 2+ concrete, distinct options? If not, it's too abstract — reframe it as a specific decision.
+
+Good gray areas (decision points with real options):
+- "Target audience priority" — ICs first vs. team leads first (changes feature set and onboarding)
+- "MVP scope boundary" — match quality vs. match speed (changes what gets cut)
+- "Migration vs. fresh start" — preserve existing data vs. clean slate (changes timeline and risk)
+
+Bad gray areas (categories, not decisions):
+- "UI" — what about UI? This isn't a decision.
+- "Error handling" — too broad, no clear fork.
+- "Performance" — a concern, not a choice point.
 
 The key question: what product or business decisions would change the outcome that the user should weigh in on?
 
@@ -245,6 +269,14 @@ ${content}
 		? `
 A previous version of the "${opts.currentSpecName}" specification exists. Read it carefully — refine and improve it rather than starting from scratch.
 
+Before starting the normal flow, analyze the existing spec:
+- **Vague decisions** — any decision that fails the specificity test ("could two implementers build different things from this?")
+- **Missing coverage** — discovery goals or constraints not addressed by any decision
+- **Stale references** — code references that no longer match the actual codebase
+- **Open gaps** — any noted uncertainties or deferred items that can now be resolved
+
+Present this analysis to the user and let them choose where to focus. Then run the relevant parts of the specify flow (gap discussion, coverage audit, etc.) for the selected areas.
+
 <current-spec>
 ${opts.currentSpec}
 </current-spec>`
@@ -279,9 +311,9 @@ When presenting assumptions from the codebase analysis, present them ONE AT A TI
 
 When the user picks "Something else (I'll explain)" in ask_question, process their free-text response, then resume using ask_question for the next question.
 
-When the user picks "Let's discuss this", switch to CONVERSATIONAL MODE: ask follow-ups in plain text, let the user explain freely, have a natural back-and-forth. Do NOT use ask_question during conversational mode. When you've understood enough, explicitly tell the user you're resuming structured questions, then continue with ask_question.
+When the user picks "Let's discuss this", switch to CONVERSATIONAL MODE: ask follow-ups in plain text, let the user explain freely, have a natural back-and-forth. Do NOT use ask_question during conversational mode. When you've understood enough, call the resume_structured tool with a summary of what you learned — this signals the transition back to structured questions. Then continue with ask_question.
 
-IMPORTANT: Also switch to conversational mode when the user picks an option that inherently requires elaboration — like "Not quite, let me explain", "I disagree", or any option where the user clearly needs to explain something. Do NOT respond to these by creating another ask_question to receive their input. Instead, acknowledge their choice in plain text and let them explain freely.
+IMPORTANT: Also switch to conversational mode when the user picks an option that inherently requires elaboration — like "Not quite, let me explain", "I disagree", or any option where the user clearly needs to explain something. Do NOT respond to these by creating another ask_question to receive their input. Instead, acknowledge their choice in plain text and let them explain freely. When you've understood their point, call resume_structured to transition back.
 
 ## Process
 
@@ -314,7 +346,13 @@ These scope areas are often complementary, not conflicting — the user may want
 
 ### 2. Quick scan + assumptions
 
-Do a lightweight scan of the codebase and discovery context to build a baseline understanding — just enough to form assumptions, not a deep dive. You're looking for existing patterns, relevant files, and the current state of things related to this spec's purpose.
+Scan the codebase focused on this spec's domain. Follow this recipe:
+1. Grep/glob for files related to the spec's scope areas (from step 1)
+2. Read the most relevant 3-5 files to understand existing patterns and current behavior
+3. Check imports and dependencies to understand how these files connect to the rest of the system
+4. Note any existing tests, configs, or schemas related to the spec's domain
+
+Stop after this. Do NOT read the entire codebase. You're building just enough context to form assumptions — deep research happens later, per gray area (step 4).
 
 Form assumptions with confidence levels (Confident / Likely / Unclear) — just like in discovery. Present them to the user ONE AT A TIME using ask_question with options like "Correct", "Not quite, let me explain". This grounds the spec in what actually exists and reduces unnecessary questions.
 
@@ -334,6 +372,8 @@ Example:
 - Focus on reducing ops overhead first — candidate relevance improvements in phase 2"
 
 **Then, find gaps that would block planning.** Ask yourself: "If the plan phase read this spec right now, what would it get stuck on? What's ambiguous enough that two implementers would build different things?" Identify 3-4 of these gaps as concrete decision points — how something should work, not whether it should exist.
+
+**Self-check before presenting:** For each gap, can you immediately articulate 2+ concrete, distinct approaches? If not, it's too abstract — reframe it as a specific decision with a clear fork. "Error handling" is a category; "What happens when a match expires mid-conversation — notify both parties or silently archive?" is a decision.
 
 **Annotate each gap with context** when presenting via ask_multi_select. Every gap MUST include a description explaining WHY it would block planning — what's undefined, what's ambiguous, what would cause problems downstream. Include code context (existing components, patterns, files) and/or prior decision context where relevant. Never present bare labels.
 

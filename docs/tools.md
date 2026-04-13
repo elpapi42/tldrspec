@@ -1,6 +1,6 @@
 # Tools
 
-tldr-spec registers two custom tools with pi. These handle all user interactions during discovery and specify phases.
+tldr-spec registers three custom tools with pi. These handle all user interactions during discovery and specify phases.
 
 ## ask_question
 
@@ -84,6 +84,24 @@ At least one item must be selected before "Done" is accepted.
 
 The phase prompts instruct the LLM to use `ask_multi_select` specifically for gray area selection -- the step where the user chooses which topics to discuss. All other interactions use `ask_question`.
 
+## resume_structured
+
+A lightweight signal tool that marks the transition from conversational mode back to structured questions. When the LLM enters conversational mode (after the user picks "Let's discuss this" or "Not quite, let me explain"), it uses this tool to exit -- forcing it to summarize what it learned before continuing.
+
+### Parameters
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `summary` | string | Brief summary of what the LLM learned from the open conversation |
+
+### Return values
+
+- Always returns: `"Conversation summary captured: <summary>. Resuming structured questions."`
+
+### Why it exists
+
+The transition out of conversational mode is one of the hardest things for an LLM to self-regulate. Without an explicit signal, the LLM either stays in conversational mode too long or snaps back too early. This tool makes the transition a concrete action rather than a vibes-based judgment. The `summary` parameter forces the LLM to consolidate what it learned before moving on.
+
 ## Design Principles
 
 ### One question at a time
@@ -92,7 +110,7 @@ Both phases enforce a strict rule: one question per turn. The LLM never asks mul
 
 ### Always a way out
 
-`ask_question` always appends two escape hatches: "Something else (I'll explain)" for free-text input, and "Let's discuss this" for switching to open conversational mode. The user can always break out of structured options. After the LLM processes their response, it resumes with structured options for the next question.
+`ask_question` always appends two escape hatches: "Something else (I'll explain)" for free-text input, and "Let's discuss this" for switching to open conversational mode. The user can always break out of structured options. When the LLM has gathered enough context from the open conversation, it calls `resume_structured` to signal the transition back to structured questions.
 
 ### Code context in every option
 

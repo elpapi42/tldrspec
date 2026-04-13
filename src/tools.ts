@@ -266,6 +266,37 @@ export function registerTools(pi: ExtensionAPI) {
 		},
 	});
 
+	// ── resume_structured ────────────────────────────────────────────
+
+	pi.registerTool({
+		name: "resume_structured",
+		label: "Resume Structured",
+		description:
+			"Call this when you've gathered enough context from an open conversation (after 'Let's discuss this' or 'Not quite, let me explain') and are ready to return to structured questions via ask_question. Forces you to summarize what you learned before continuing.",
+		parameters: Type.Object({
+			summary: Type.String({ description: "Brief summary of what you learned from the open conversation" }),
+		}),
+
+		async execute(_toolCallId, params, _signal, _onUpdate, _ctx) {
+			return {
+				content: [
+					{
+						type: "text",
+						text: `Conversation summary captured: ${params.summary}\n\nResuming structured questions. Use ask_question for your next interaction.`,
+					},
+				],
+			};
+		},
+
+		renderCall(args, theme) {
+			return new Text(theme.fg("toolTitle", theme.bold("resume ")) + theme.fg("muted", args.summary || ""), 0, 0);
+		},
+
+		renderResult(result, _options, theme) {
+			return new Text(theme.fg("success", "✓ ") + theme.fg("accent", "Resuming structured questions"), 0, 0);
+		},
+	});
+
 	// ── ask_multi_select ──────────────────────────────────────────────
 
 	pi.registerTool({

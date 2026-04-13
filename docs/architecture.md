@@ -8,7 +8,7 @@ tldrspec/
 │   ├── index.ts    — Extension entry point: commands, event hooks, tool registration
 │   ├── phases.ts   — System prompt builders for each phase
 │   ├── state.ts    — Initiative paths and artifact read helpers
-│   └── tools.ts    — Custom TUI tools (ask_question, ask_multi_select)
+│   └── tools.ts    — Custom TUI tools (ask_question, ask_multi_select, resume_structured)
 ├── docs/           — Documentation
 ├── package.json    — Pi extension manifest
 └── .gitignore
@@ -32,7 +32,7 @@ The kickoff message varies based on whether artifacts already exist (refinement 
 
 ### Tools
 
-Two custom tools (`ask_question`, `ask_multi_select`). Both use `ctx.ui.custom()` to render interactive TUI components with keyboard navigation. See [tools.md](tools.md) for details.
+Three custom tools (`ask_question`, `ask_multi_select`, `resume_structured`). The first two use `ctx.ui.custom()` to render interactive TUI components with keyboard navigation. `resume_structured` is a lightweight signal tool for exiting conversational mode. See [tools.md](tools.md) for details.
 
 ### Event Hooks
 
@@ -72,7 +72,7 @@ The current phase and initiative name are held in a `session` variable. There is
 
 | API | Purpose |
 |-----|---------|
-| `pi.registerTool()` | Register `ask_question` and `ask_multi_select` |
+| `pi.registerTool()` | Register `ask_question`, `ask_multi_select`, and `resume_structured` |
 | `pi.registerCommand()` | Register `/tldr-discovery`, `/tldr-specify`, `/tldr-plan` |
 | `pi.on("before_agent_start")` | Inject phase-specific system prompt |
 | `pi.on("session_shutdown")` | Clean up session state and status bar |

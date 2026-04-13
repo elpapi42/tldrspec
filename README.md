@@ -80,7 +80,7 @@ tldrspec/
 - [Philosophy](docs/philosophy.md) -- Why tldr-spec exists and its design principles
 - [Getting Started](docs/getting-started.md) -- Installation, commands, walkthrough
 - [Phases](docs/phases.md) -- Discovery, specify, and plan in detail
-- [Tools](docs/tools.md) -- ask_question and ask_multi_select reference
+- [Tools](docs/tools.md) -- ask_question, ask_multi_select, and resume_structured reference
 - [Architecture](docs/architecture.md) -- How it's built, design decisions, API surface
 
 ## License
