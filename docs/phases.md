@@ -66,7 +66,7 @@ Specs can cover any domain -- not just technical engineering:
 
 ### How it works
 
-1. **Orient + Purpose** -- The LLM reads the discovery document and all existing specs. Then it asks what this spec should cover via multi-select, inferring scope areas from the spec name and discovery context. The user selects all areas they want this spec to cover.
+1. **Orient + Purpose** -- The LLM reads the discovery document and all existing specs. It then presents an assumption about the spec's intent ("I think this spec is about X -- is that right?") for the user to confirm or correct. Once intent is established, it generates scope areas via multi-select grounded in the user's actual stated intent. The user selects all areas they want this spec to cover.
 
 2. **Quick scan + assumptions** -- A lightweight codebase scan builds baseline understanding. The LLM forms assumptions with confidence levels (Confident / Likely / Unclear) and presents them one at a time for correction. This is just enough to identify what exists -- deep research happens later, per gray area.
 

@@ -287,16 +287,30 @@ IMPORTANT: Also switch to conversational mode when the user picks an option that
 
 ### 1. Orient + Purpose
 
-- Read the discovery document and all existing specs as your source of truth.
-- Ask the user what this spec should cover using ask_multi_select. Infer 3-5 scope areas from the spec name and the discovery document, and present them as options. Each option should be specific — not just a category, but a concrete scope statement. The user selects all areas they want this spec to cover.
+**a) Read context.** Read the discovery document and all existing specs as your source of truth.
 
-Example for a spec named "api-design":
-- "REST endpoint contracts — routes, payloads, validation, error responses"
-- "API authentication flow — token handling, refresh logic, permission checks"
-- "Error handling conventions — status codes, error shapes, retry semantics"
-- "Versioning strategy — URL vs. header, deprecation policy"
+**b) Confirm intent.** From the spec name and discovery, infer what this spec is about and present it as an assumption using ask_question. Frame it as a concrete statement of what the user wants to nail down — not a category, but a specific intent.
 
-These scope areas are often complementary, not conflicting — the user may want several in the same spec. The selected areas anchor everything downstream — your codebase analysis, gray areas, and decisions should all serve this scope. If any selected area is already well-covered by an existing spec, tell the user before proceeding.
+Example for a spec named "ranking-algorithm":
+- label: "Correct", description: "I'll scope this spec around that intent"
+- label: "Not quite, let me explain", description: "I'll adjust based on your direction"
+
+Your assumption should sound like: "Based on the name and discovery, I think this spec is about defining how the ranking algorithm scores and weights candidates — the factors, their relative importance, and how they combine into a final score. Is that right?"
+
+NOT: "I think this spec is about technical architecture." That's a category, not an intent.
+
+If the user confirms, proceed. If they correct or elaborate, use THEIR words as the intent — don't paraphrase back into something generic.
+
+**c) Scope the spec.** Using the confirmed intent, generate 3-5 concrete scope areas and present them via ask_multi_select. Each option should be a specific piece of the intent that could be addressed independently. The user selects all areas they want this spec to cover.
+
+Example for intent "how the ranking algorithm scores and weights candidates":
+- "Factor definitions — what each factor measures and how it's scored (0-1 normalized vs. weighted points)"
+- "Weight distribution — relative importance of factors, English vs. non-English job differences"
+- "Score combination — how individual factor scores produce a final ranking score"
+- "Tier thresholds — what score ranges mean (good match, maybe, poor) and how they're used downstream"
+- "Extensibility — how new factors get added without breaking existing scoring"
+
+These scope areas are often complementary, not conflicting — the user may want several in the same spec. The selected areas anchor everything downstream — your gap analysis, decisions, and the final spec should all serve this scope. If any selected area is already well-covered by an existing spec, tell the user before proceeding.
 
 ### 2. Quick scan + assumptions
 
