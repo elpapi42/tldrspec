@@ -25,7 +25,7 @@ ${updating}
 
 ## Interaction rules
 
-ONE QUESTION PER TURN. Never ask more than one question in a single message. Every question to the user MUST go through the ask_question tool — never ask questions in conversational text. The only exception is ask_multi_select for choosing which gray areas to discuss.
+ONE QUESTION PER TURN. Never ask more than one question in a single message. Every question to the user MUST go through the ask_question tool — never ask questions in conversational text. NEVER use ask_multi_select for regular questions — it is ONLY for the gray area selection step where the user picks which topics to discuss.
 
 The ask_question tool automatically appends "Something else (I'll explain)" as the last option — do NOT include a free-text or "something else" option yourself. Only provide your concrete options (2-4).
 
@@ -238,7 +238,7 @@ ${updatingSection}
 
 ## Interaction rules
 
-ONE QUESTION PER TURN. Never ask more than one question in a single message. Every question to the user MUST go through the ask_question tool — never ask questions in conversational text. The only exception is ask_multi_select for choosing which gray areas to discuss.
+ONE QUESTION PER TURN. Never ask more than one question in a single message. Every question to the user MUST go through the ask_question tool — never ask questions in conversational text. NEVER use ask_multi_select for regular questions — it is ONLY for the gray area selection step where the user picks which topics to discuss.
 
 The ask_question tool automatically appends "Something else (I'll explain)" as the last option — do NOT include a free-text or "something else" option yourself. Only provide your concrete options (2-4).
 
