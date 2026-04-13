@@ -70,13 +70,10 @@ export default function tldrSpec(pi: ExtensionAPI) {
 					: `I want to start discovery for a new initiative called "${initiative}". Help me understand and define what we're building. Start asking questions.`;
 			}
 			case "specify": {
-				if (specName) {
-					const existing = readArtifact(specPath(cwd, initiative, specName));
-					return existing
-						? `I want to refine the "${specName}" specification for the "${initiative}" initiative. The existing spec is at tldrspec/${initiative}/specs/${specName}.md. Please read it and help me improve it.`
-						: `I want to write a "${specName}" specification for the "${initiative}" initiative. Read the discovery document at tldrspec/${initiative}/discovery.md and any existing specs, then help me write this spec.`;
-				}
-				return `I want to write a specification for the "${initiative}" initiative. Read the discovery document at tldrspec/${initiative}/discovery.md and any existing specs, then ask me what aspect I want to specify.`;
+				const existing = readArtifact(specPath(cwd, initiative, specName!));
+				return existing
+					? `I want to refine the "${specName}" specification for the "${initiative}" initiative. The existing spec is at tldrspec/${initiative}/specs/${specName}.md. Please read it and help me improve it.`
+					: `I want to write a "${specName}" specification for the "${initiative}" initiative. Read the discovery document at tldrspec/${initiative}/discovery.md and any existing specs, then help me write this spec.`;
 			}
 			case "plan": {
 				return `I want to create a task plan for the "${initiative}" initiative. Read all artifacts in tldrspec/${initiative}/ (discovery.md and all specs in specs/) and break them down into actionable tasks.`;
@@ -100,14 +97,14 @@ export default function tldrSpec(pi: ExtensionAPI) {
 
 	pi.registerCommand("tldr-specify", {
 		description:
-			"Write or refine a specification for an initiative. Usage: /tldr-specify <initiative-name> [spec-name]",
+			"Write or refine a specification for an initiative. Usage: /tldr-specify <initiative-name> <spec-name>",
 		handler: async (args, ctx) => {
 			const parts = args?.trim().split(/\s+/) ?? [];
 			const initiative = parts[0];
-			const specName = parts[1]; // optional
+			const specName = parts[1];
 
-			if (!initiative) {
-				ctx.ui.notify("Usage: /tldr-specify <initiative-name> [spec-name]", "error");
+			if (!initiative || !specName) {
+				ctx.ui.notify("Usage: /tldr-specify <initiative-name> <spec-name>", "error");
 				return;
 			}
 			startPhase("specify", initiative, ctx, specName);

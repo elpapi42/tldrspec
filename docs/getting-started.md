@@ -21,7 +21,7 @@ tldr-spec registers three commands in pi:
 | Command | Purpose | Output |
 |---------|---------|--------|
 | `/tldr-discovery <name>` | Understand the problem space | `tldrspec/<name>/discovery.md` |
-| `/tldr-specify <name> [spec]` | Write actionable specifications | `tldrspec/<name>/specs/<spec>.md` |
+| `/tldr-specify <name> <spec>` | Write actionable specifications | `tldrspec/<name>/specs/<spec>.md` |
 | `/tldr-plan <name>` | Break specs into executable tasks | `tldrspec/<name>/plan.md` |
 
 ## Quick Walkthrough
@@ -43,12 +43,6 @@ The LLM will:
 8. Write `tldrspec/auth-system/discovery.md` and suggest which specs to write next
 
 ### 2. Write specifications
-
-```
-/tldr-specify auth-system
-```
-
-If you don't provide a spec name, the LLM suggests spec types based on what the discovery revealed. You can also be explicit:
 
 ```
 /tldr-specify auth-system api-design

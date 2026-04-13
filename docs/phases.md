@@ -49,7 +49,7 @@ The **Context** section captures business, product, or market context. The **Dec
 
 ## Specify
 
-**Command:** `/tldr-specify <initiative-name> [spec-name]`
+**Command:** `/tldr-specify <initiative-name> <spec-name>`
 **Reads:** `discovery.md` + existing specs + codebase
 **Produces:** `tldrspec/<name>/specs/<spec-name>.md`
 
@@ -66,13 +66,13 @@ Specs can cover any domain -- not just technical engineering:
 
 ### How it works
 
-1. **Orient + Purpose** -- If no spec name was provided, the LLM suggests spec types based on what the discovery revealed. It reads the discovery document and all existing specs. Then it asks what this spec should cover, inferring likely purposes from the spec name and discovery context.
+1. **Orient + Purpose** -- The LLM reads the discovery document and all existing specs. Then it asks what this spec should cover via multi-select, inferring scope areas from the spec name and discovery context. The user selects all areas they want this spec to cover.
 
 2. **Quick scan + assumptions** -- A lightweight codebase scan builds baseline understanding. The LLM forms assumptions with confidence levels (Confident / Likely / Unclear) and presents them one at a time for correction. This is just enough to identify what exists -- deep research happens later, per gray area.
 
-3. **Frame boundary + identify gray areas** -- The LLM first frames what this spec delivers and surfaces relevant decisions already locked from discovery and existing specs. Then it identifies 3-4 concrete decision points about how something should work (not whether it should exist). Each gray area is annotated with code context (existing components, files, patterns) and prior decision context. The user selects which to discuss via multi-select.
+3. **Frame boundary + find gaps** -- The LLM first frames what this spec delivers and surfaces relevant decisions already locked from discovery and existing specs. Then it asks: "If the plan phase read this spec right now, what would it get stuck on?" It identifies 3-4 gaps -- ambiguities, undefined behaviors, or decisions that would cause two implementers to build different things. Each gap is annotated with WHY it would block planning, plus code context and prior decision context. The user selects which to discuss via multi-select.
 
-4. **Focused discussion** -- Each selected gray area gets announced, then its own deep research pass -- the LLM digs into the specific files, patterns, and dependencies relevant to that decision. For technical decisions, it presents comparison tables:
+4. **Focused discussion** -- Each selected gap gets announced, then its own deep research pass -- the LLM digs into the specific files, patterns, and dependencies relevant to that decision. For technical decisions, it presents comparison tables:
 
    | Option | Pros | Cons | Complexity | Recommendation |
    |--------|------|------|------------|----------------|
@@ -85,7 +85,7 @@ Specs can cover any domain -- not just technical engineering:
    - Vague decisions are challenged immediately during discussion
    - After each area: a per-area checkpoint asks "more questions about this, or next area?" so the user controls depth
 
-5. **Explore-more checkpoint** -- After discussing all selected areas, the LLM presents a clear summary: what's resolved (with one-line decisions), what new areas surfaced, and what's still open. The user can loop back to explore more gray areas (presented again with annotations via multi-select) or proceed to finalize. This loop can repeat as many times as needed.
+5. **Planning readiness checkpoint** -- After discussing all selected gaps, the LLM assesses planning readiness: are there follow-up decisions created by what was just decided? Interactions between decisions that haven't been addressed? Scope areas not yet touched? It presents a context-aware summary with resolved decisions, specific gaps found (and why they'd block planning), and a recommendation to keep going or finalize. If the user keeps going, the LLM proactively identifies new gaps and presents them via multi-select. This loop can repeat as many times as needed.
 
 6. **Coverage audit** -- Before writing, every goal and decision from the discovery document is checked. If anything is missing and not covered by another spec, the user is asked whether to include it or create a separate spec.
 

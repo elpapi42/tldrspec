@@ -16,13 +16,13 @@ Planning either takes too long or doesn't happen. Both are expensive.
 
 ```
 /tldr-discovery auth-system     -> discovery.md
-/tldr-specify auth-system api   -> specs/api.md
+/tldr-specify auth-system api-design   -> specs/api-design.md
 /tldr-plan auth-system          -> plan.md
 ```
 
 **Discovery** -- Problem space. The AI understands your product context, forms assumptions, and presents them one at a time for you to confirm or correct. Then it identifies the gray areas -- product and business decisions that would change the outcome -- and walks you through each one with concrete options. No technical decisions here -- just what you're building, for whom, and why.
 
-**Specify** -- Solution space. Write specs for any domain: product, technical, business, security, data, UX. For technical decisions, you get comparison tables with pros, cons, complexity, and conditional recommendations. Before writing, the AI audits every discovery goal is covered and every decision passes the specificity test: "Could a different AI implement this without asking clarifying questions?"
+**Specify** -- Solution space. Name your spec and write it. Specs can cover any domain: product, technical, business, security, data, UX. For technical decisions, you get comparison tables with pros, cons, complexity, and conditional recommendations. Before writing, the AI audits every discovery goal is covered and every decision passes the specificity test: "Could a different AI implement this without asking clarifying questions?"
 
 **Plan** -- Reads everything, breaks it into tasks with dependencies and affected files. Each task has enough context to execute independently.
 
@@ -50,7 +50,7 @@ pi install git:github.com/elpapi42/tldrspec
 # Start a new initiative
 /tldr-discovery my-feature
 
-# Write specs (one per aspect)
+# Write specs (one per domain)
 /tldr-specify my-feature product
 /tldr-specify my-feature technical
 
