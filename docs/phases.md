@@ -70,9 +70,9 @@ Specs can cover any domain -- not just technical engineering:
 
 2. **Quick scan + assumptions** -- A lightweight codebase scan builds baseline understanding. The LLM forms assumptions with confidence levels (Confident / Likely / Unclear) and presents them one at a time for correction. This is just enough to identify what exists -- deep research happens later, per gray area.
 
-3. **Gray area identification** -- 3-4 concrete decision points about how something should work (not whether it should exist). The user selects which to discuss via multi-select.
+3. **Frame boundary + identify gray areas** -- The LLM first frames what this spec delivers and surfaces relevant decisions already locked from discovery and existing specs. Then it identifies 3-4 concrete decision points about how something should work (not whether it should exist). Each gray area is annotated with code context (existing components, files, patterns) and prior decision context. The user selects which to discuss via multi-select.
 
-4. **Focused discussion** -- Each selected gray area gets its own deep research pass -- the LLM digs into the specific files, patterns, and dependencies relevant to that decision. For technical decisions, it presents comparison tables:
+4. **Focused discussion** -- Each selected gray area gets announced, then its own deep research pass -- the LLM digs into the specific files, patterns, and dependencies relevant to that decision. For technical decisions, it presents comparison tables:
 
    | Option | Pros | Cons | Complexity | Recommendation |
    |--------|------|------|------------|----------------|
@@ -81,9 +81,11 @@ Specs can cover any domain -- not just technical engineering:
 
    - Complexity = impact surface + risk (never time estimates)
    - Recommendations are always conditional ("Recommended if mobile-first"), never single-winner rankings
+   - "You decide" is available as an option when delegation is reasonable
    - Vague decisions are challenged immediately during discussion
+   - After each area: a per-area checkpoint asks "more questions about this, or next area?" so the user controls depth
 
-5. **Checkpoint** -- After discussing all selected areas, the LLM presents a summary: what's been resolved, what new decision points surfaced during discussion, and what's still open. The user can loop back to explore more gray areas or proceed to finalize. This loop can repeat as many times as needed.
+5. **Explore-more checkpoint** -- After discussing all selected areas, the LLM presents a clear summary: what's resolved (with one-line decisions), what new areas surfaced, and what's still open. The user can loop back to explore more gray areas (presented again with annotations via multi-select) or proceed to finalize. This loop can repeat as many times as needed.
 
 6. **Coverage audit** -- Before writing, every goal and decision from the discovery document is checked. If anything is missing and not covered by another spec, the user is asked whether to include it or create a separate spec.
 

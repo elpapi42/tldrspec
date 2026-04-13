@@ -307,21 +307,41 @@ Form assumptions with confidence levels (Confident / Likely / Unclear) — just 
 
 Throughout the entire spec process, ALWAYS cite existing code when presenting options. Frame options in terms of "reuse X" vs. "build new" with file paths.
 
-### 3. Identify gray areas — MANDATORY, DO NOT SKIP
+### 3. Frame boundary + identify gray areas — MANDATORY, DO NOT SKIP
 
 STOP. You MUST complete this step before writing any spec. Do NOT jump to writing after assumptions.
 
-From what you now know (discovery, existing specs, codebase scan, corrected assumptions), identify 3-4 concrete decision points specific to this spec. These are solution-space decisions — how something should work, not whether it should exist.
+**First, frame the domain boundary.** Before presenting gray areas, explicitly tell the user:
+- What this spec delivers (the scope anchor from step 1)
+- What's already decided — surface relevant decisions from the discovery document and any existing specs that apply to this spec's domain. Quote them directly so the user sees what's locked.
 
-You MUST present them to the user using the ask_multi_select tool and let them choose which to discuss. Keep a running list of all gray areas — both resolved and open — so you can present the full picture at each checkpoint.
+Example:
+"This spec covers [scope]. Carrying forward from discovery:
+- MVP targets individual contributors only (team features deferred to v2)
+- Focus on reducing ops overhead first — candidate relevance improvements in phase 2"
+
+**Then, identify 3-4 gray areas.** These are solution-space decisions — how something should work, not whether it should exist.
+
+**Annotate each gray area with context** when presenting via ask_multi_select. Every gray area MUST include a description with code context (existing components, patterns, files) and/or prior decision context. Never present bare labels.
+
+Example format:
+- label: "Layout style", description: "Cards vs list vs timeline? (Card component exists at src/components/Card.tsx with shadow/rounded variants)"
+- label: "Loading behavior", description: "Infinite scroll or pagination? (useInfiniteQuery hook available in src/hooks/)"
+- label: "Error responses", description: "Current pattern is generic 500s. Discovery decided on user-facing error messages."
+
+The user selects which areas to discuss. Keep a running list of all gray areas — both resolved and open — so you can present the full picture at each checkpoint.
 
 Do NOT proceed to writing. Do NOT make these decisions yourself. The user MUST select and discuss gray areas before any spec is written.
 
 ### 4. Discuss selected gray areas — MANDATORY, DO NOT SKIP
 
-For EACH selected gray area, do **focused research** — dig into the specific codebase files, patterns, and dependencies relevant to that decision. This is the deep dive, not the quick scan from step 2.
+For EACH selected gray area:
 
-For technical decisions, present a comparison table before asking:
+**a) Announce:** "Let's talk about [area]."
+
+**b) Focused research** — dig into the specific codebase files, patterns, and dependencies relevant to that decision. This is the deep dive, not the quick scan from step 2.
+
+**c) Present options and ask.** For technical decisions, present a comparison table before asking:
 
 | Option | Pros | Cons | Complexity | Recommendation |
 |--------|------|------|------------|----------------|
@@ -335,29 +355,42 @@ Rules for the table:
 
 After the table, let the user pick, then ask targeted follow-ups only if the pick has ambiguity.
 
-For non-technical decisions, use the same 2-4 concrete options approach from discovery with the ask_question tool.
+For non-technical decisions, use the same 2-4 concrete options approach with the ask_question tool.
 
 Every option in ask_question MUST include a description that helps the user decide. The description should briefly state why you'd pick it and why you might not, separated by a bullet. Example:
 - label: "Reuse Card component", description: "Consistent with existing pages, less code • Limited to shadow/rounded variants"
 
-Challenge vague decisions immediately as they come up — don't wait for a separate step:
+**Include "You decide" as an option when reasonable** — this lets the user explicitly delegate a decision to the implementer's discretion. It's different from the user not being asked at all. When selected, record it in the "Your Discretion" section of the spec.
+
+Challenge vague decisions immediately as they come up:
 - "You said 'clean UI' — what does clean mean? Minimal controls? Lots of whitespace? Monochrome palette?"
 - "You said 'fast' — what's the threshold? Under 200ms? Under 1s? Just 'noticeably faster than now'?"
 
 Every decision must be specific enough that two different implementers would produce similar results.
 
-### 5. Checkpoint — MANDATORY after every discussion round
+**d) Per-area checkpoint.** After 1-4 questions on an area, use ask_question to ask:
+- "More questions about [current area]" — keep going deeper
+- "Next area ([remaining areas listed])" — move on
 
-STOP. After discussing all selected gray areas, you MUST pause and present the user with a summary:
-- **Resolved:** gray areas that now have concrete decisions
-- **New:** any new decision points that surfaced during discussion (this is common — discussing one area often reveals others)
-- **Still open:** any previously identified areas that weren't selected
+This gives the user control over depth per area. Don't discuss all areas to the same depth — some need 1 question, others need 4.
 
-You MUST then use ask_question to let the user choose:
-- "Explore new/remaining gray areas" — loop back to step 3 with the updated list
-- "Proceed to finalize the spec" — continue to step 6
+### 5. Explore-more checkpoint — MANDATORY after every discussion round
 
-Do NOT skip this checkpoint. Do NOT proceed to writing without asking the user. This checkpoint can repeat as many times as needed. Each loop refines the spec's decisions further.
+STOP. After discussing all selected gray areas, you MUST pause and take stock.
+
+Present the user with a clear summary:
+"We've discussed [list resolved areas]. Here's where we stand:"
+- **Resolved:** [list areas with their decisions, one line each]
+- **New:** [any new decision points that surfaced during discussion]
+- **Still open:** [any previously identified areas that weren't selected]
+
+Then use ask_question:
+- label: "Explore more gray areas", description: "Discuss new or remaining areas before finalizing"
+- label: "Ready to finalize the spec", description: "Proceed to coverage audit and writing"
+
+If the user picks "Explore more", present the new/remaining gray areas via ask_multi_select (with annotations, same as step 3) and loop back to step 4. This loop can repeat as many times as needed.
+
+Do NOT skip this checkpoint. Do NOT proceed to writing without asking the user.
 
 ### 6. Coverage audit (mandatory before writing)
 
