@@ -6,7 +6,7 @@
  */
 
 import type { ExtensionAPI } from "@mariozechner/pi-coding-agent";
-import { Editor, type EditorTheme, Key, matchesKey, Text, truncateToWidth } from "@mariozechner/pi-tui";
+import { Key, matchesKey, Text, truncateToWidth } from "@mariozechner/pi-tui";
 import { Type } from "@sinclair/typebox";
 
 interface OptionWithDesc {
@@ -60,31 +60,8 @@ export function registerTools(pi: ExtensionAPI) {
 			const result = await ctx.ui.custom<{ answer: string; wasCustom: boolean; index?: number } | null>(
 				(tui, theme, _kb, done) => {
 					let optionIndex = 0;
-					let editMode = false;
+					let customText = "";
 					let cachedLines: string[] | undefined;
-
-					const editorTheme: EditorTheme = {
-						borderColor: (s) => theme.fg("accent", s),
-						selectList: {
-							selectedPrefix: (t) => theme.fg("accent", t),
-							selectedText: (t) => theme.fg("accent", t),
-							description: (t) => theme.fg("muted", t),
-							scrollInfo: (t) => theme.fg("dim", t),
-							noMatch: (t) => theme.fg("warning", t),
-						},
-					};
-					const editor = new Editor(tui, editorTheme);
-
-					editor.onSubmit = (value) => {
-						const trimmed = value.trim();
-						if (trimmed) {
-							done({ answer: trimmed, wasCustom: true });
-						} else {
-							editMode = false;
-							editor.setText("");
-							refresh();
-						}
-					};
 
 					function refresh() {
 						cachedLines = undefined;
@@ -92,25 +69,39 @@ export function registerTools(pi: ExtensionAPI) {
 					}
 
 					const isOnOther = () => allOptions[optionIndex]?.isOther === true;
+					const isTyping = () => isOnOther() && customText.length > 0;
 
 					function handleInput(data: string) {
-						if (editMode) {
-							// Up arrow while editing: clear editor, exit edit mode, navigate up
+						// When on "Something else" with text entered
+						if (isTyping()) {
+							if (matchesKey(data, Key.enter)) {
+								const trimmed = customText.trim();
+								if (trimmed) {
+									done({ answer: trimmed, wasCustom: true });
+								}
+								return;
+							}
+							if (matchesKey(data, Key.escape)) {
+								customText = "";
+								refresh();
+								return;
+							}
+							if (matchesKey(data, Key.backspace)) {
+								customText = customText.slice(0, -1);
+								refresh();
+								return;
+							}
 							if (matchesKey(data, Key.up)) {
-								editMode = false;
-								editor.setText("");
+								customText = "";
 								optionIndex = Math.max(0, optionIndex - 1);
 								refresh();
 								return;
 							}
-							if (matchesKey(data, Key.escape)) {
-								editMode = false;
-								editor.setText("");
+							// Printable characters
+							if (data.length > 0 && data.charCodeAt(0) >= 32) {
+								customText += data;
 								refresh();
-								return;
 							}
-							editor.handleInput(data);
-							refresh();
 							return;
 						}
 
@@ -127,10 +118,7 @@ export function registerTools(pi: ExtensionAPI) {
 
 						if (matchesKey(data, Key.enter)) {
 							const selected = allOptions[optionIndex];
-							if (selected.isOther) {
-								editMode = true;
-								refresh();
-							} else {
+							if (!selected.isOther) {
 								done({ answer: selected.label, wasCustom: false, index: optionIndex + 1 });
 							}
 							return;
@@ -141,10 +129,9 @@ export function registerTools(pi: ExtensionAPI) {
 							return;
 						}
 
-						// Printable character while on "Something else": start typing immediately
+						// Printable character while on "Something else": start typing inline
 						if (isOnOther() && data.length > 0 && data.charCodeAt(0) >= 32) {
-							editMode = true;
-							editor.handleInput(data);
+							customText += data;
 							refresh();
 						}
 					}
@@ -161,33 +148,32 @@ export function registerTools(pi: ExtensionAPI) {
 
 						for (let i = 0; i < allOptions.length; i++) {
 							const opt = allOptions[i];
-							const selected = i === optionIndex;
-							const prefix = selected ? theme.fg("accent", "> ") : "  ";
+							const focused = i === optionIndex;
+							const prefix = focused ? theme.fg("accent", "> ") : "  ";
 
-							if (opt.isOther && editMode) {
-								add(prefix + theme.fg("accent", `${i + 1}. ${opt.label} ✎`));
-							} else if (selected) {
+							if (opt.isOther) {
+								const num = `${i + 1}. `;
+								if (customText.length > 0) {
+									add(prefix + theme.fg("accent", num + customText + "▎"));
+								} else if (focused) {
+									add(prefix + theme.fg("muted", num + "Type your answer...▎"));
+								} else {
+									add(`  ${theme.fg("dim", num + "Something else (I'll explain)")}`);
+								}
+							} else if (focused) {
 								add(prefix + theme.fg("accent", `${i + 1}. ${opt.label}`));
 							} else {
 								add(`  ${theme.fg("text", `${i + 1}. ${opt.label}`)}`);
 							}
 
-							if (opt.description) {
+							if (!opt.isOther && opt.description) {
 								add(`     ${theme.fg("muted", opt.description)}`);
 							}
 						}
 
-						if (editMode) {
-							lines.push("");
-							add(theme.fg("muted", " Your answer:"));
-							for (const line of editor.render(width - 2)) {
-								add(` ${line}`);
-							}
-						}
-
 						lines.push("");
-						if (editMode) {
-							add(theme.fg("dim", " Enter to submit • Esc to go back"));
+						if (isTyping()) {
+							add(theme.fg("dim", " Enter to submit • Esc to clear • ↑ to go back"));
 						} else {
 							add(theme.fg("dim", " ↑↓ navigate • Enter to select • Esc to cancel"));
 						}
