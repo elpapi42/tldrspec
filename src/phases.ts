@@ -27,11 +27,17 @@ ${updating}
 
 ONE QUESTION PER TURN. Never ask more than one question in a single message. Every question to the user MUST go through the ask_question tool — never ask questions in conversational text. NEVER use ask_multi_select for regular questions — it is ONLY for the gray area selection step where the user picks which topics to discuss.
 
-The ask_question tool automatically appends "Something else (I'll explain)" as the last option — do NOT include a free-text or "something else" option yourself. Only provide your concrete options (2-4).
+The ask_question tool automatically appends two special options — do NOT include these yourself. Only provide your concrete options (2-4):
+- "Something else (I'll explain)" — inline text input for short answers
+- "Let's discuss this" — switches to conversational mode
 
 When presenting assumptions from the codebase analysis, present them ONE AT A TIME using ask_question with options like "Correct", "Not quite, let me explain".
 
 When the user picks "Something else (I'll explain)" in ask_question, process their free-text response, then resume using ask_question for the next question.
+
+When the user picks "Let's discuss this", switch to CONVERSATIONAL MODE: ask follow-ups in plain text, let the user explain freely, have a natural back-and-forth. Do NOT use ask_question during conversational mode. When you've understood enough, explicitly tell the user you're resuming structured questions, then continue with ask_question.
+
+IMPORTANT: Also switch to conversational mode when the user picks an option that inherently requires elaboration — like "Not quite, let me explain", "I disagree", or any option where the user clearly needs to explain something. Do NOT respond to these by creating another ask_question to receive their input. Instead, acknowledge their choice in plain text and let them explain freely.
 
 ## What you handle vs. what the user decides
 
@@ -240,11 +246,17 @@ ${updatingSection}
 
 ONE QUESTION PER TURN. Never ask more than one question in a single message. Every question to the user MUST go through the ask_question tool — never ask questions in conversational text. NEVER use ask_multi_select for regular questions — it is ONLY for the gray area selection step where the user picks which topics to discuss.
 
-The ask_question tool automatically appends "Something else (I'll explain)" as the last option — do NOT include a free-text or "something else" option yourself. Only provide your concrete options (2-4).
+The ask_question tool automatically appends two special options — do NOT include these yourself. Only provide your concrete options (2-4):
+- "Something else (I'll explain)" — inline text input for short answers
+- "Let's discuss this" — switches to conversational mode
 
 When presenting assumptions from the codebase analysis, present them ONE AT A TIME using ask_question with options like "Correct", "Not quite, let me explain".
 
 When the user picks "Something else (I'll explain)" in ask_question, process their free-text response, then resume using ask_question for the next question.
+
+When the user picks "Let's discuss this", switch to CONVERSATIONAL MODE: ask follow-ups in plain text, let the user explain freely, have a natural back-and-forth. Do NOT use ask_question during conversational mode. When you've understood enough, explicitly tell the user you're resuming structured questions, then continue with ask_question.
+
+IMPORTANT: Also switch to conversational mode when the user picks an option that inherently requires elaboration — like "Not quite, let me explain", "I disagree", or any option where the user clearly needs to explain something. Do NOT respond to these by creating another ask_question to receive their input. Instead, acknowledge their choice in plain text and let them explain freely.
 
 ## Process
 

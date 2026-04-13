@@ -54,10 +54,14 @@ export function registerTools(pi: ExtensionAPI) {
 				};
 			}
 
-			type DisplayOption = OptionWithDesc & { isOther?: boolean };
-			const allOptions: DisplayOption[] = [...params.options, { label: "Something else (I'll explain)", isOther: true }];
+			type DisplayOption = OptionWithDesc & { isOther?: boolean; isDiscuss?: boolean };
+			const allOptions: DisplayOption[] = [
+				...params.options,
+				{ label: "Something else (I'll explain)", isOther: true },
+				{ label: "Let's discuss this", isDiscuss: true },
+			];
 
-			const result = await ctx.ui.custom<{ answer: string; wasCustom: boolean; index?: number } | null>(
+			const result = await ctx.ui.custom<{ answer: string; wasCustom: boolean; wasDiscuss?: boolean; index?: number } | null>(
 				(tui, theme, _kb, done) => {
 					let optionIndex = 0;
 					let customText = "";
@@ -118,7 +122,9 @@ export function registerTools(pi: ExtensionAPI) {
 
 						if (matchesKey(data, Key.enter)) {
 							const selected = allOptions[optionIndex];
-							if (!selected.isOther) {
+							if (selected.isDiscuss) {
+								done({ answer: "discuss", wasCustom: false, wasDiscuss: true });
+							} else if (!selected.isOther) {
 								done({ answer: selected.label, wasCustom: false, index: optionIndex + 1 });
 							}
 							return;
@@ -159,6 +165,13 @@ export function registerTools(pi: ExtensionAPI) {
 									add(prefix + theme.fg("muted", num + "Type your answer...▎"));
 								} else {
 									add(`  ${theme.fg("dim", num + "Something else (I'll explain)")}`);
+								}
+							} else if (opt.isDiscuss) {
+								const num = `${i + 1}. `;
+								if (focused) {
+									add(prefix + theme.fg("accent", num + "Let's discuss this"));
+								} else {
+									add(`  ${theme.fg("dim", num + "Let's discuss this")}`);
 								}
 							} else if (focused) {
 								add(prefix + theme.fg("accent", `${i + 1}. ${opt.label}`));
@@ -202,6 +215,13 @@ export function registerTools(pi: ExtensionAPI) {
 				};
 			}
 
+			if (result.wasDiscuss) {
+				return {
+					content: [{ type: "text", text: "User wants to discuss this topic in conversation. Switch to conversational mode — ask follow-ups in plain text, no tools. When you've understood enough, resume structured interaction with ask_question." }],
+					details: { question: params.question, options: simpleOptions, answer: null, wasCustom: false } as QuestionDetails,
+				};
+			}
+
 			if (result.wasCustom) {
 				return {
 					content: [{ type: "text", text: `User wrote: ${result.answer}` }],
@@ -220,7 +240,7 @@ export function registerTools(pi: ExtensionAPI) {
 			const opts = Array.isArray(args.options) ? args.options : [];
 			if (opts.length) {
 				const labels = opts.map((o: OptionWithDesc) => o.label);
-				const numbered = [...labels, "Something else (I'll explain)"].map((o, i) => `${i + 1}. ${o}`);
+				const numbered = [...labels, "Something else (I'll explain)", "Let's discuss this"].map((o, i) => `${i + 1}. ${o}`);
 				text += `\n${theme.fg("dim", `  Options: ${numbered.join(", ")}`)}`;
 			}
 			return new Text(text, 0, 0);
