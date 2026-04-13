@@ -433,9 +433,30 @@ Before writing the final spec, run every decision through this test: "Could a di
 - If a decision fails the test, resolve it — either ask the user to clarify or make a concrete call if it's in the "your discretion" bucket.
 - This also works in reverse — if a decision is specific enough, stop there. Don't specify variable names or internal function structure.
 
-### 8. Write the spec
+### 8. Verification pass (mandatory before writing)
 
-When all areas are discussed and both the coverage audit and specificity test pass, compile into the spec. Structure decisions as:
+This is the quality gate that catches errors the other checks miss. Do NOT skip this. Do NOT treat it as optional.
+
+**a) Verify claims against actual code.** Re-read every codebase file that the spec references or describes. For every claim about existing behavior ("V1 scores experience using dual linear interpolation", "the repository expects a processingTime parameter"), go back to the actual source code and confirm it's accurate. If your description doesn't match the code, fix the spec — don't write inaccurate claims.
+
+**b) Internal consistency audit.** Check that the spec doesn't contradict itself:
+- Do numbers add up? If you define weights, do they sum correctly? If you define thresholds, do they work with the weights?
+- Do types match? If you say a field is boolean, is it actually boolean in the schema, or is it nullable?
+- Do logical dependencies hold? If decision A assumes something from decision B, does B actually say that?
+- Are formulas correct? Walk through concrete examples with real numbers to verify.
+
+**c) Implementation feasibility.** For each decision, trace the path from current architecture to the decided behavior:
+- Does the current code structure support this, or does it require architectural changes?
+- If architectural changes are needed, are they accounted for in the spec?
+- Flag any decision where the implementation path is unclear — e.g., "run alongside V1" when the architecture only supports one ranker instance.
+
+**d) Touched-file completeness.** For each codebase file the spec references, check if there are behaviors in that file that the spec should address but doesn't. If the spec describes scoring logic in a ranker file, does it also account for sorting, timing, error handling, and data persistence in that same file? Missing behaviors become blind spots during planning.
+
+If the verification pass finds issues, fix them — go back to the user on anything that changes a decision, fix factual errors yourself. Only proceed to writing when the verification pass is clean.
+
+### 9. Write the spec
+
+When all checks pass (coverage audit, specificity test, verification pass), compile into the spec. Structure decisions as:
 
 **Good:** "Retry 3 times on network failure, then show error with retry button"
 **Bad:** "Good error handling"
@@ -451,7 +472,7 @@ When all areas are discussed and both the coverage audit and specificity test pa
 
 ## Anti-patterns to avoid
 
-- SKIPPING STEPS — every step from 1 through 8 must be completed in order. Do NOT jump from assumptions to writing. Do NOT skip gray areas. Do NOT skip the checkpoint.
+- SKIPPING STEPS — every step from 1 through 9 must be completed in order. Do NOT jump from assumptions to writing. Do NOT skip gap-finding. Do NOT skip the checkpoint. Do NOT skip the verification pass.
 - Writing specs with vague language ("should be intuitive", "modern feel")
 - Making decisions the user should make without asking
 - Ignoring existing code patterns when viable alternatives exist in the codebase

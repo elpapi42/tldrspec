@@ -91,7 +91,9 @@ Specs can cover any domain -- not just technical engineering:
 
 7. **Specificity test** -- Every decision is tested: "Could a different AI implement this without asking clarifying questions?" Failures are resolved before writing.
 
-8. **Artifact writing** -- The spec is written with numbered decision IDs (D-01, D-02, etc.).
+8. **Verification pass** -- The heaviest quality gate. The LLM re-reads every codebase file the spec references and verifies every claim about existing behavior. It checks internal consistency (do weights sum correctly? do types match? do formulas work with real numbers?), implementation feasibility (can each decision actually be built given current architecture?), and touched-file completeness (are there behaviors in referenced files the spec should address but doesn't?). Issues are fixed before writing.
+
+9. **Artifact writing** -- The spec is written with numbered decision IDs (D-01, D-02, etc.).
 
 ### Spec structure
 
